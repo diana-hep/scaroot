@@ -4,8 +4,6 @@ package scaroot {
   object Main {
     def main(args: Array[String]) {
       println("hey, world")
-
-
     }
   }
 }

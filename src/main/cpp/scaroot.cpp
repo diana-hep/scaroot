@@ -1,5 +1,3 @@
-// g++ -fPIC -shared -Wl,--no-as-needed `root-config --cflags --ldflags --libs` -o target/classes/scaroot.so src/main/cpp/scaroot.cpp
-
 #include <stdint.h>
 
 #include "TFile.h"

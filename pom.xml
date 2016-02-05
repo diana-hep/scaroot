@@ -48,6 +48,25 @@
     <plugins>
 
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.4.0</version>
+        <executions>
+          <execution>
+            <id>Build scaroot.cpp</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <workingDirectory>src/main/cpp</workingDirectory>
+              <executable>make</executable>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <!-- see http://davidb.github.com/scala-maven-plugin -->
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
@@ -132,9 +151,29 @@
           <createChecksum>true</createChecksum>
         </configuration>
       </plugin>
+
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>src/main/resources/native</directory>
+              <includes>
+                <include>scaroot.so</include>
+              </includes>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+
     </plugins>
 
     <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <targetPath>resources</targetPath>
+      </resource>
     </resources>
 
     <testResources>

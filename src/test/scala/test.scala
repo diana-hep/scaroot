@@ -11,6 +11,7 @@ import hep.io.root._
 import hep.io.root.interfaces._
 
 import org.dianahep.scaroot._
+import org.dianahep.scaroot.api._
 
 class DefaultSuite extends FlatSpec with Matchers {
   "Shared object" should "load and show some TFile stuff" in {
@@ -69,5 +70,11 @@ class DefaultSuite extends FlatSpec with Matchers {
     (one.getValue(1), two.getValue(1), three.getValue(1)) should be ((2, 2.2F, "dos"))
     (one.getValue(2), two.getValue(2), three.getValue(2)) should be ((3, 3.3F, "tres"))
     (one.getValue(3), two.getValue(3), three.getValue(3)) should be ((4, 4.4F, "quatro"))
+  }
+
+  "RootTTree API" should "make accessors for custom case classes" in {
+    case class Something(x: Double, y: Double, z: Double)
+    val rootTTree = RootTTreeReader[Something]("src/test/resources/verysimple.root", "ntuple")
+    println(rootTTree.get(0))
   }
 }

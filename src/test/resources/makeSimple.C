@@ -44,4 +44,21 @@ void makeSimple() {
 
   f2->Write();
   f2->Close();
+
+  TFile *f3 = new TFile("notsosimple.root", "RECREATE");
+  TTree *tree2 = new TTree("tree", "fake data");
+  Double_t scalar;
+  std::vector<Double_t> vector;
+  std::vector<std::vector<Double_t> > tensor;
+  tree2->Branch("scalar", &scalar);
+  tree2->Branch("vector", &vector);
+  tree2->Branch("tensor", &tensor);
+
+  scalar = 3.14;
+  vector = {1.1, 2.2, 3.3};
+  tensor = {{0.9, 0.1}, {-0.1, 0.9}};
+  tree2->Fill();
+
+  f3->Write();
+  f3->Close();
 }

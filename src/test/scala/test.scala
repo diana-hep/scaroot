@@ -83,6 +83,15 @@ class DefaultSuite extends FlatSpec with Matchers {
     verysimple.get(3) should be (VerySimple(10.0F, 11.0F, 12.0F))
     verysimple.get(4) should be (VerySimple(1.0F, 2.0F, 3.0F))
 
+    case class VerySimple2(y: Float, x: Float)
+    val verysimple2 = FreeHepRootTTreeReader[VerySimple2]("src/test/resources/verysimple.root", "ntuple")
+    verysimple2.size should be (5)
+    verysimple2.get(0) should be (VerySimple2(2.0F, 1.0F))
+    verysimple2.get(1) should be (VerySimple2(5.0F, 4.0F))
+    verysimple2.get(2) should be (VerySimple2(8.0F, 7.0F))
+    verysimple2.get(3) should be (VerySimple2(11.0F, 10.0F))
+    verysimple2.get(4) should be (VerySimple2(2.0F, 1.0F))
+
     case class Simple(one: Int, two: Float, three: String)
     val simple = FreeHepRootTTreeReader[Simple]("src/test/resources/simple.root", "tree")
     simple.size should be (4)
@@ -90,5 +99,25 @@ class DefaultSuite extends FlatSpec with Matchers {
     simple.get(1) should be (Simple(2, 2.2F, "dos"))
     simple.get(2) should be (Simple(3, 3.3F, "tres"))
     simple.get(3) should be (Simple(4, 4.4F, "quatro"))
+
+    case class Simple2(three: String, one: Int)
+    val simple2 = FreeHepRootTTreeReader[Simple2]("src/test/resources/simple.root", "tree")
+    simple2.size should be (4)
+    simple2.get(0) should be (Simple2("uno", 1))
+    simple2.get(1) should be (Simple2("dos", 2))
+    simple2.get(2) should be (Simple2("tres", 3))
+    simple2.get(3) should be (Simple2("quatro", 4))
+
+    case class BrokenSimple(one: Int, two: Float, three: String, four: Double)
+    a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[BrokenSimple]("src/test/resources/simple.root", "tree") }
+
+    a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[Simple]("src/test/resources/simpleton.root", "tree") }
+    a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[Simple]("src/test/resources/makeSimple.C", "tree") }
+    a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[Simple]("src/test/resources/simple.root", "treety") }
+
+    // TODO: get an example of the following that you can embed in src/test/resources
+    // a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[Simple]("/opt/root/test/Event.root", "ProcessID0") }
+    // a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[Simple]("/opt/root/test/Event.root", "hstat") }
+
   }
 }

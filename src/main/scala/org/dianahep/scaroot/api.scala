@@ -4,19 +4,15 @@ import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
 package api {
-  trait RootTTreeRowBuilder[CASE] {
-    trait LeafType
-    case object LeafByte extends LeafType
-    case object LeafShort extends LeafType
-    case object LeafInt extends LeafType
-    case object LeafLong extends LeafType
-    case object LeafFloat extends LeafType
-    case object LeafDouble extends LeafType
-    case object LeafString extends LeafType
+  object FieldType extends Enumeration {
+    type FieldType = Value
+    val Byte, Short, Int, Long, Float, Double, String = Value
+  }
 
+  trait RootTTreeRowBuilder[CASE] {
     def build[ID](rootTTree: RootTTreeReader[CASE, ID], row: Int): CASE
     def leafIdentifiers: Array[Any]
-    def nameTypes: Seq[(String, LeafType)]
+    def nameTypes: Seq[(String, FieldType.Value)]
   }
   object RootTTreeRowBuilder {
     implicit def compileRootTTreeRowBuilder[CASE]: RootTTreeRowBuilder[CASE] = macro compileRootTTreeRowBuilderImpl[CASE]
@@ -36,19 +32,19 @@ package api {
 
         val (leafMethod, t) =
           if (leafType =:= typeOf[Byte])
-            (q"rootTTree.getValueLeafB", q"LeafByte")
+            (q"rootTTree.getValueLeafB", q"FieldType.Byte")
           else if (leafType =:= typeOf[Short])
-            (q"rootTTree.getValueLeafS", q"LeafShort")
+            (q"rootTTree.getValueLeafS", q"FieldType.Short")
           else if (leafType =:= typeOf[Int])
-            (q"rootTTree.getValueLeafI", q"LeafInt")
+            (q"rootTTree.getValueLeafI", q"FieldType.Int")
           else if (leafType =:= typeOf[Long])
-            (q"rootTTree.getValueLeafL", q"LeafLong")
+            (q"rootTTree.getValueLeafL", q"FieldType.Long")
           else if (leafType =:= typeOf[Float])
-            (q"rootTTree.getValueLeafF", q"LeafFloat")
+            (q"rootTTree.getValueLeafF", q"FieldType.Float")
           else if (leafType =:= typeOf[Double])
-            (q"rootTTree.getValueLeafD", q"LeafDouble")
+            (q"rootTTree.getValueLeafD", q"FieldType.Double")
           else if (leafType =:= typeOf[String])
-            (q"rootTTree.getValueLeafC", q"LeafString")
+            (q"rootTTree.getValueLeafC", q"FieldType.String")
           else
             throw new NotImplementedError(s"no handler for type $leafType")
 

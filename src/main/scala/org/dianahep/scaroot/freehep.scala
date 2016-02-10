@@ -33,18 +33,41 @@ package freehep {
     val size = ttree.getEntries
 
     private val nameToIndex = rowBuilder.nameTypes.map(_._1).zipWithIndex.toMap
+    private val nameToType = rowBuilder.nameTypes.toMap
     private val leaves = ttree.getLeaves
     leaves.getLowerBound until leaves.getUpperBound foreach {i =>
       val element = leaves.getElementAt(i)
-      nameToIndex.get(element.asInstanceOf[TNamed].getName) match {
-        case Some(index) => rowBuilder.leafIdentifiers(index) = element.asInstanceOf[TLeaf]
+      val name = element.asInstanceOf[TNamed].getName
+
+      nameToIndex.get(name) match {
+        case Some(index) =>
+          // put the TLeaf reference in the array for RootTTreeRowBuilder to look up
+          rowBuilder.leafIdentifiers(index) = element
+
+          // test casting to make sure that we'll be able to do it at runtime
+          try {
+            nameToType(name) match {
+              case FieldType.Byte => element.asInstanceOf[TLeafB]
+              case FieldType.Short => element.asInstanceOf[TLeafS]
+              case FieldType.Int => element.asInstanceOf[TLeafI]
+              case FieldType.Long => element.asInstanceOf[TLeafL]
+              case FieldType.Float => element.asInstanceOf[TLeafF]
+              case FieldType.Double => element.asInstanceOf[TLeafD]
+              case FieldType.String => element.asInstanceOf[TLeafC]
+            }
+          }
+          catch {
+            case err: java.lang.ClassCastException => throw new FreeHepException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" has leaf "$name" with type ${element.getClass.getName}, but expecting ${nameToType(name)}.""", Some(err))
+          }
+
         case None =>
       }
     }
-    rowBuilder.leafIdentifiers.zipWithIndex collect {case (null, i) =>
-        throw new FreeHepException(s"""ROOT file $rootFileLocation, TTree $ttreeLocation is missing field "${rowBuilder.nameTypes(i)._1}" (among others, possibly).""")
-    }
+    val missing = rowBuilder.leafIdentifiers.zipWithIndex collect {case (null, i) => rowBuilder.nameTypes(i)._1}
+    if (!missing.isEmpty)
+        throw new FreeHepException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" has no leaves corresponding to the following fields: ${missing.map("\"" + _ + "\"").mkString(" ")}.""")
 
+    // casts are fast and guaranteed by the above (as long as nobody gets access to our private (closed-over) rowBuilder
     def getValueLeafB(leaf: TLeaf, row: Int): Byte = leaf.asInstanceOf[TLeafB].getValue(row)
     def getValueLeafS(leaf: TLeaf, row: Int): Short = leaf.asInstanceOf[TLeafS].getValue(row)
     def getValueLeafI(leaf: TLeaf, row: Int): Int = leaf.asInstanceOf[TLeafI].getValue(row)

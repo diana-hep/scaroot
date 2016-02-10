@@ -111,6 +111,9 @@ class DefaultSuite extends FlatSpec with Matchers {
     case class BrokenSimple(one: Int, two: Float, three: String, four: Double)
     a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[BrokenSimple]("src/test/resources/simple.root", "tree") }
 
+    case class BrokenSimple2(one: Int, two: Double, three: String)
+    a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[BrokenSimple2]("src/test/resources/simple.root", "tree") }
+
     a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[Simple]("src/test/resources/simpleton.root", "tree") }
     a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[Simple]("src/test/resources/makeSimple.C", "tree") }
     a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[Simple]("src/test/resources/simple.root", "treety") }

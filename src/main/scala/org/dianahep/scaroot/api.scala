@@ -55,7 +55,10 @@ package api {
 
       c.Expr[RootTTreeRowBuilder[CASE]](q"""
         new RootTTreeRowBuilder[$caseType] {
-          def build[ID](rootTTree: RootTTreeReader[$caseType, ID], row: Long): $caseType = new $caseType(..$buildParams)
+          def build[ID](rootTTree: RootTTreeReader[$caseType, ID], row: Long): $caseType = {
+            rootTTree.getRow(row)
+            new $caseType(..$buildParams)
+          }
           val leafIdentifiers = Array.fill(${fields.size})(null.asInstanceOf[Any])
           val nameTypes = Vector(..$nameTypes)
         }
@@ -70,6 +73,7 @@ package api {
 
     def get(row: Long): CASE = rowBuilder.build(this, row)
 
+    def getRow(row: Long): Unit
     def getValueLeafB(leaf: ID, row: Long): Byte
     def getValueLeafS(leaf: ID, row: Long): Short
     def getValueLeafI(leaf: ID, row: Long): Int

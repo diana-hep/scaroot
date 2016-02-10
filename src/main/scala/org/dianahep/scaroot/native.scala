@@ -7,9 +7,9 @@ import com.sun.jna._
 import org.dianahep.scaroot.api._
 
 package native {
-  class NativeException(message: String, cause: Option[Throwable] = None) extends RootApiException(message, cause)
+  class NativeRootException(message: String, cause: Option[Throwable] = None) extends RootApiException(message, cause)
 
-  private[scaroot] object NativeROOT extends Library {
+  private[scaroot] object NativeRoot extends Library {
     Native.register("/resources/native/nativeRoot.so")
 
     @native def new_TFile(rootFileLocation: String): Long
@@ -20,25 +20,29 @@ package native {
     @native def ttreeGetNumEntries(ttree: Long): Long
     @native def ttreeGetNumLeaves(ttree: Long): Long
     @native def ttreeGetLeaf(ttree: Long, i: Long): Long
-    @native def ttreeGetLeafName(ttree: Long, i: Long): String
-    @native def ttreeGetLeafType(ttree: Long, i: Long): String
+    @native def ttreeGetLeafName(tleaf: Long): String
+    @native def ttreeGetLeafType(tleaf: Long): String
 
-    @native def getValueLeafB(leaf: Long, row: Long): Byte
-    @native def getValueLeafS(leaf: Long, row: Long): Short
-    @native def getValueLeafI(leaf: Long, row: Long): Int
-    @native def getValueLeafL(leaf: Long, row: Long): Long
-    @native def getValueLeafF(leaf: Long, row: Long): Float
-    @native def getValueLeafD(leaf: Long, row: Long): Double
-    @native def getValueLeafC(leaf: Long, row: Long): String
+    @native def new_dummy(ttree: Long, tleaf: Long): Long
+    @native def delete_dummy(dummy: Long): Unit
+    @native def ttreeGetRow(ttree: Long, row: Long): Byte
+
+    @native def getValueLeafB(leaf: Long): Byte
+    @native def getValueLeafS(leaf: Long): Short
+    @native def getValueLeafI(leaf: Long): Int
+    @native def getValueLeafL(leaf: Long): Long
+    @native def getValueLeafF(leaf: Long): Float
+    @native def getValueLeafD(leaf: Long): Double
+    @native def getValueLeafC(leaf: Long): String
   }
 
   case class Pointer(value: Long) extends AnyVal {   // AnyVal is lightweight: no objects are made at runtime
     def isEmpty = (value == 0L)
-    def get = if (isEmpty) throw new NativeException("Attempt to use nullptr.") else value
+    def get = if (isEmpty) throw new NativeRootException("Attempt to use nullptr.") else value
     def getOption = if (isEmpty) None else Some(value)
     override def toString() = if (isEmpty) "nullptr" else value.toHexString // f"0x$value%016x"
   }
-  // attempts to call a NativeROOT function with a nullptr argument will raise a JVM exception BEFORE calling the function
+  // attempts to call a NativeRoot function with a nullptr argument will raise a JVM exception BEFORE calling the function
 }
 
 package object native {
@@ -53,32 +57,32 @@ package native {
                                     rowBuilder: RootTTreeRowBuilder[CASE]) extends
                           RootTTreeReader[CASE, Pointer](rowBuilder: RootTTreeRowBuilder[CASE]) {
 
-    private var tfile: Pointer = NativeROOT.new_TFile(rootFileLocation)
+    private var tfile: Pointer = NativeRoot.new_TFile(rootFileLocation)
     private def release_tfile() {
-      NativeROOT.close_TFile(tfile)
-      NativeROOT.delete_TFile(tfile)  // we own this pointer; have to delete it
+      NativeRoot.close_TFile(tfile)
+      NativeRoot.delete_TFile(tfile)  // we own this pointer; have to delete it
       tfile = nullptr
     }
 
-    private var ttree: Pointer = NativeROOT.getTTree(tfile, ttreeLocation)
+    private var ttree: Pointer = NativeRoot.getTTree(tfile, ttreeLocation)
     private def release_ttree() {
       ttree = nullptr  // we don't own this pointer; just forget its value
     }
 
-    val size = NativeROOT.ttreeGetNumEntries(ttree)
+    val size = NativeRoot.ttreeGetNumEntries(ttree)
 
     private val nameToIndex = rowBuilder.nameTypes.map(_._1).zipWithIndex.toMap
     private val nameToType = rowBuilder.nameTypes.toMap
 
-    0L until NativeROOT.ttreeGetNumLeaves(ttree) foreach {i =>
-      val tleaf: Pointer = NativeROOT.ttreeGetLeaf(ttree, i)
-      val tleafName = NativeROOT.ttreeGetLeafName(ttree, i)
-      val tleafType = NativeROOT.ttreeGetLeafType(ttree, i)
+    0L until NativeRoot.ttreeGetNumLeaves(ttree) foreach {i =>
+      val tleaf: Pointer = NativeRoot.ttreeGetLeaf(ttree, i)
+      val tleafName = NativeRoot.ttreeGetLeafName(tleaf)
+      val tleafType = NativeRoot.ttreeGetLeafType(tleaf)
 
       nameToIndex.get(tleafName) match {
         case Some(index) =>
           // put the TLeaf pointer in the array for RootTTreeRowBuilder to look up
-          rowBuilder.leafIdentifiers(index) = tleaf
+          rowBuilder.leafIdentifiers(index) = NativeRoot.new_dummy(ttree, tleaf)
 
           // verify that the leaf type matches the expected type
           (nameToType, tleafType) match {
@@ -90,25 +94,35 @@ package native {
             case (FieldType.Double, "TLeafD") =>
             case (FieldType.String, "TLeafC") =>
             case _ =>
-              throw new NativeException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" has leaf "$tleafName" with type ${tleaf.getClass.getName}, but expecting ${nameToType(tleafName)}.""", None)
+              throw new NativeRootException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" has leaf "$tleafName" with type ${tleaf.getClass.getName}, but expecting ${nameToType(tleafName)}.""", None)
           }
 
         case None =>
       }
     }
 
-    val missing = rowBuilder.leafIdentifiers.zipWithIndex collect {case (null, i) => rowBuilder.nameTypes(i)._1}
+    val missing = rowBuilder.leafIdentifiers.zipWithIndex collect {case (nullptr, i) => rowBuilder.nameTypes(i)._1}
     if (!missing.isEmpty)
-        throw new NativeException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" has no leaves corresponding to the following fields: ${missing.map("\"" + _ + "\"").mkString(" ")}.""")
+        throw new NativeRootException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" has no leaves corresponding to the following fields: ${missing.map("\"" + _ + "\"").mkString(" ")}.""")
+
+    def release_dummies() {
+      rowBuilder.leafIdentifiers foreach {dummy =>
+        NativeRoot.delete_dummy(dummy.asInstanceOf[Long])
+      }
+    }
 
     // casts are fast and guaranteed by the above (as long as nobody gets access to our private (closed-over) rowBuilder
-    def getValueLeafB(leaf: Pointer, row: Long): Byte = NativeROOT.getValueLeafB(leaf, row)
-    def getValueLeafS(leaf: Pointer, row: Long): Short = NativeROOT.getValueLeafS(leaf, row)
-    def getValueLeafI(leaf: Pointer, row: Long): Int = NativeROOT.getValueLeafI(leaf, row)
-    def getValueLeafL(leaf: Pointer, row: Long): Long = NativeROOT.getValueLeafL(leaf, row)
-    def getValueLeafF(leaf: Pointer, row: Long): Float = NativeROOT.getValueLeafF(leaf, row)
-    def getValueLeafD(leaf: Pointer, row: Long): Double = NativeROOT.getValueLeafD(leaf, row)
-    def getValueLeafC(leaf: Pointer, row: Long): String = NativeROOT.getValueLeafC(leaf, row)
+    def getRow(row: Long) {
+      if (NativeRoot.ttreeGetRow(ttree, row) == 0)
+        throw new Exception
+    }
+    def getValueLeafB(leaf: Pointer, row: Long): Byte = NativeRoot.getValueLeafB(leaf)
+    def getValueLeafS(leaf: Pointer, row: Long): Short = NativeRoot.getValueLeafS(leaf)
+    def getValueLeafI(leaf: Pointer, row: Long): Int = NativeRoot.getValueLeafI(leaf)
+    def getValueLeafL(leaf: Pointer, row: Long): Long = NativeRoot.getValueLeafL(leaf)
+    def getValueLeafF(leaf: Pointer, row: Long): Float = NativeRoot.getValueLeafF(leaf)
+    def getValueLeafD(leaf: Pointer, row: Long): Double = NativeRoot.getValueLeafD(leaf)
+    def getValueLeafC(leaf: Pointer, row: Long): String = NativeRoot.getValueLeafC(leaf)
 
     def isOpen = !tfile.isEmpty
 
@@ -116,6 +130,7 @@ package native {
       // "good" interfaces will call this explicitly (e.g. RootTTreeIterator)
       release_tfile()
       release_ttree()
+      release_dummies()
     }
 
     override def finalize() {

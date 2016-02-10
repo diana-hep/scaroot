@@ -4,7 +4,7 @@ import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
 package api {
-  trait RootTTreeRowBuilder[T] {
+  trait RootTTreeRowBuilder[CASE] {
     trait LeafType
     case object LeafByte extends LeafType
     case object LeafShort extends LeafType
@@ -14,25 +14,25 @@ package api {
     case object LeafDouble extends LeafType
     case object LeafString extends LeafType
 
-    def build(rootTTree: RootTTreeReader[T], row: Int): T
-    def leafIdentifiers: Array[AnyRef]
+    def build[ID](rootTTree: RootTTreeReader[CASE, ID], row: Int): CASE
+    def leafIdentifiers: Array[Any]
     def nameTypes: Seq[(String, LeafType)]
   }
   object RootTTreeRowBuilder {
-    implicit def compileRootTTreeRowBuilder[T]: RootTTreeRowBuilder[T] = macro compileRootTTreeRowBuilderImpl[T]
+    implicit def compileRootTTreeRowBuilder[CASE]: RootTTreeRowBuilder[CASE] = macro compileRootTTreeRowBuilderImpl[CASE]
 
-    def compileRootTTreeRowBuilderImpl[T: c.WeakTypeTag](c: Context): c.Expr[RootTTreeRowBuilder[T]] = {
+    def compileRootTTreeRowBuilderImpl[CASE : c.WeakTypeTag](c: Context): c.Expr[RootTTreeRowBuilder[CASE]] = {
       import c.universe._
-      val tpe = weakTypeOf[T]
+      val caseType = weakTypeOf[CASE]
 
-      val fields = tpe.decls.collectFirst {
+      val fields = caseType.decls.collectFirst {
         case m: MethodSymbol if (m.isPrimaryConstructor) => m
       }.get.paramLists.head
 
       val (buildParams, nameTypes) = fields.zipWithIndex.map {case (field, index) =>
         val name = field.asTerm.name
         val leafName = name.decodedName.toString
-        val NullaryMethodType(leafType) = tpe.decl(name).typeSignature
+        val NullaryMethodType(leafType) = caseType.decl(name).typeSignature
 
         val (leafMethod, t) =
           if (leafType =:= typeOf[Byte])
@@ -52,32 +52,32 @@ package api {
           else
             throw new NotImplementedError(s"no handler for type $leafType")
 
-        (q"$leafMethod(leafIdentifiers($index), row)", q"$leafName -> $t")
+        (q"$leafMethod(leafIdentifiers($index).asInstanceOf[ID], row)", q"$leafName -> $t")
       }.unzip
 
-      c.Expr[RootTTreeRowBuilder[T]](q"""
-        new RootTTreeRowBuilder[$tpe] {
-          def build(rootTTree: RootTTreeReader[$tpe], row: Int): $tpe = new $tpe(..$buildParams)
-          val leafIdentifiers = Array.fill(${fields.size})(null.asInstanceOf[AnyRef])
+      c.Expr[RootTTreeRowBuilder[CASE]](q"""
+        new RootTTreeRowBuilder[$caseType] {
+          def build[ID](rootTTree: RootTTreeReader[$caseType, ID], row: Int): $caseType = new $caseType(..$buildParams)
+          val leafIdentifiers = Array.fill(${fields.size})(null.asInstanceOf[Any])
           val nameTypes = Vector(..$nameTypes)
         }
       """)
     }
   }
 
-  abstract class RootTTreeReader[T](rowBuilder: RootTTreeRowBuilder[T]) {
+  abstract class RootTTreeReader[CASE, ID](rowBuilder: RootTTreeRowBuilder[CASE]) {
     def rootFileLocation: String
     def ttreeLocation: String
     def size: Long
 
-    def get(row: Int): T = rowBuilder.build(this, row)
+    def get(row: Int): CASE = rowBuilder.build(this, row)
 
-    def getValueLeafB(leaf: AnyRef, row: Int): Byte
-    def getValueLeafS(leaf: AnyRef, row: Int): Short
-    def getValueLeafI(leaf: AnyRef, row: Int): Int
-    def getValueLeafL(leaf: AnyRef, row: Int): Long
-    def getValueLeafF(leaf: AnyRef, row: Int): Float
-    def getValueLeafD(leaf: AnyRef, row: Int): Double
-    def getValueLeafC(leaf: AnyRef, row: Int): String
+    def getValueLeafB(leaf: ID, row: Int): Byte
+    def getValueLeafS(leaf: ID, row: Int): Short
+    def getValueLeafI(leaf: ID, row: Int): Int
+    def getValueLeafL(leaf: ID, row: Int): Long
+    def getValueLeafF(leaf: ID, row: Int): Float
+    def getValueLeafD(leaf: ID, row: Int): Double
+    def getValueLeafC(leaf: ID, row: Int): String
   }
 }

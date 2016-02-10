@@ -73,7 +73,7 @@ class DefaultSuite extends FlatSpec with Matchers {
   }
 
   "RootTTree API" should "make accessors for custom case classes" in {
-    case class Something(x: Double, y: Double, z: Double)
+    case class Something(x: Double, y: Double, z: String)
     val rootTTree = RootTTreeReader[Something]("src/test/resources/verysimple.root", "ntuple")
     println(rootTTree.get(0))
   }

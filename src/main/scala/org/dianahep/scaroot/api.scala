@@ -9,9 +9,13 @@ package object api {
 
 package api {
   trait RootTTreeRowBuilder[T] {
+    trait LeafType
+    case object LeafDouble extends LeafType
+    case object LeafString extends LeafType
+
     def build(rootTTree: RootTTreeReader[T], row: Int): T
     def leafIdentifiers: Array[Identifier]
-    def nameTypes: Seq[(String, String)]
+    def nameTypes: Seq[(String, LeafType)]
   }
   object RootTTreeRowBuilder {
     implicit def compileRootTTreeRowBuilder[T]: RootTTreeRowBuilder[T] = macro compileRootTTreeRowBuilderImpl[T]
@@ -28,9 +32,16 @@ package api {
         val name = field.asTerm.name
         val leafName = name.decodedName.toString
         val NullaryMethodType(leafType) = tpe.decl(name).typeSignature
-        // scala.reflect.runtime.universe.Type???
 
-        (q"rootTTree.getLeafDValue(leafIdentifiers($index), row)", q"$leafName -> ${leafType.toString}")
+        val (leafMethod, t) =
+          if (leafType =:= typeOf[Double])
+            (q"rootTTree.getLeafDValue", q"LeafDouble")
+          else if (leafType =:= typeOf[String])
+            (q"rootTTree.getLeafCValue", q"LeafString")
+          else
+            throw new NotImplementedError(s"no handler for type $leafType")
+
+        (q"$leafMethod(leafIdentifiers($index), row)", q"$leafName -> $t")
       }.unzip
 
       c.Expr[RootTTreeRowBuilder[T]](q"""

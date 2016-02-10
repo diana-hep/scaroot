@@ -4,6 +4,8 @@ import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
 package api {
+  class RootApiException(message: String, cause: Option[Throwable] = None) extends RuntimeException(message, cause.getOrElse(null))
+
   object FieldType extends Enumeration {
     type FieldType = Value
     val Byte, Short, Int, Long, Float, Double, String = Value

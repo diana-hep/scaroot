@@ -6,7 +6,7 @@ import hep.io.root.interfaces._
 import org.dianahep.scaroot.api._
 
 package freehep {
-  class FreeHepException(message: String, cause: Option[Throwable] = None) extends RuntimeException(message, cause.getOrElse(null))
+  class FreeHepException(message: String, cause: Option[Throwable] = None) extends RootApiException(message, cause)
 
   class FreeHepRootTTreeReader[CASE](val rootFileLocation: String,
                                      val ttreeLocation: String,

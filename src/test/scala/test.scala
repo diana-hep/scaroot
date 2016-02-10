@@ -15,14 +15,14 @@ import org.dianahep.scaroot.api._
 import org.dianahep.scaroot.freehep._
 
 class DefaultSuite extends FlatSpec with Matchers {
-  "Shared object" should "load and show some TFile stuff" in {
-    val pointer = SharedObject.new_TFile("/opt/root/test/Event.root")
-    println(s"pointer value $pointer")
-    SharedObject.TFile_ls(pointer)
-    println(s"see a listing?")
-    SharedObject.delete_TFile(pointer)
-    println(s"still here?")
-  }
+  // "Shared object" should "load and show some TFile stuff" in {
+  //   val pointer = SharedObject.new_TFile("/opt/root/test/Event.root")
+  //   println(s"pointer value $pointer")
+  //   SharedObject.TFile_ls(pointer)
+  //   println(s"see a listing?")
+  //   SharedObject.delete_TFile(pointer)
+  //   println(s"still here?")
+  // }
 
   "FreeHEP" should "open verysimple.root" in {
     val reader = new RootFileReader("src/test/resources/verysimple.root")

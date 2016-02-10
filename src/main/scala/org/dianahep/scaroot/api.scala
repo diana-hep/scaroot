@@ -12,7 +12,7 @@ package api {
   }
 
   trait RootTTreeRowBuilder[CASE] {
-    def build[ID](rootTTree: RootTTreeReader[CASE, ID], row: Int): CASE
+    def build[ID](rootTTree: RootTTreeReader[CASE, ID], row: Long): CASE
     def leafIdentifiers: Array[Any]
     def nameTypes: Seq[(String, FieldType.Value)]
   }
@@ -55,7 +55,7 @@ package api {
 
       c.Expr[RootTTreeRowBuilder[CASE]](q"""
         new RootTTreeRowBuilder[$caseType] {
-          def build[ID](rootTTree: RootTTreeReader[$caseType, ID], row: Int): $caseType = new $caseType(..$buildParams)
+          def build[ID](rootTTree: RootTTreeReader[$caseType, ID], row: Long): $caseType = new $caseType(..$buildParams)
           val leafIdentifiers = Array.fill(${fields.size})(null.asInstanceOf[Any])
           val nameTypes = Vector(..$nameTypes)
         }
@@ -68,14 +68,14 @@ package api {
     def ttreeLocation: String
     def size: Long
 
-    def get(row: Int): CASE = rowBuilder.build(this, row)
+    def get(row: Long): CASE = rowBuilder.build(this, row)
 
-    def getValueLeafB(leaf: ID, row: Int): Byte
-    def getValueLeafS(leaf: ID, row: Int): Short
-    def getValueLeafI(leaf: ID, row: Int): Int
-    def getValueLeafL(leaf: ID, row: Int): Long
-    def getValueLeafF(leaf: ID, row: Int): Float
-    def getValueLeafD(leaf: ID, row: Int): Double
-    def getValueLeafC(leaf: ID, row: Int): String
+    def getValueLeafB(leaf: ID, row: Long): Byte
+    def getValueLeafS(leaf: ID, row: Long): Short
+    def getValueLeafI(leaf: ID, row: Long): Int
+    def getValueLeafL(leaf: ID, row: Long): Long
+    def getValueLeafF(leaf: ID, row: Long): Float
+    def getValueLeafD(leaf: ID, row: Long): Double
+    def getValueLeafC(leaf: ID, row: Long): String
   }
 }

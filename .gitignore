@@ -19,3 +19,6 @@ project/plugins/project/
 # Emacs auto-save files
 *~
 #*#
+
+# Shared libraries
+*.so

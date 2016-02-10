@@ -3,18 +3,19 @@ package org.dianahep.scaroot
 import scala.language.experimental.macros 
 import scala.reflect.macros.blackbox.Context
 
-package object api {
-  type Identifier = Long   // may be a pointer on the backend
-}
-
 package api {
   trait RootTTreeRowBuilder[T] {
     trait LeafType
+    case object LeafByte extends LeafType
+    case object LeafShort extends LeafType
+    case object LeafInt extends LeafType
+    case object LeafLong extends LeafType
+    case object LeafFloat extends LeafType
     case object LeafDouble extends LeafType
     case object LeafString extends LeafType
 
     def build(rootTTree: RootTTreeReader[T], row: Int): T
-    def leafIdentifiers: Array[Identifier]
+    def leafIdentifiers: Array[AnyRef]
     def nameTypes: Seq[(String, LeafType)]
   }
   object RootTTreeRowBuilder {
@@ -34,10 +35,20 @@ package api {
         val NullaryMethodType(leafType) = tpe.decl(name).typeSignature
 
         val (leafMethod, t) =
-          if (leafType =:= typeOf[Double])
-            (q"rootTTree.getLeafDValue", q"LeafDouble")
+          if (leafType =:= typeOf[Byte])
+            (q"rootTTree.getValueLeafB", q"LeafByte")
+          else if (leafType =:= typeOf[Short])
+            (q"rootTTree.getValueLeafS", q"LeafShort")
+          else if (leafType =:= typeOf[Int])
+            (q"rootTTree.getValueLeafI", q"LeafInt")
+          else if (leafType =:= typeOf[Long])
+            (q"rootTTree.getValueLeafL", q"LeafLong")
+          else if (leafType =:= typeOf[Float])
+            (q"rootTTree.getValueLeafF", q"LeafFloat")
+          else if (leafType =:= typeOf[Double])
+            (q"rootTTree.getValueLeafD", q"LeafDouble")
           else if (leafType =:= typeOf[String])
-            (q"rootTTree.getLeafCValue", q"LeafString")
+            (q"rootTTree.getValueLeafC", q"LeafString")
           else
             throw new NotImplementedError(s"no handler for type $leafType")
 
@@ -47,25 +58,26 @@ package api {
       c.Expr[RootTTreeRowBuilder[T]](q"""
         new RootTTreeRowBuilder[$tpe] {
           def build(rootTTree: RootTTreeReader[$tpe], row: Int): $tpe = new $tpe(..$buildParams)
-          val leafIdentifiers = Array.fill(${fields.size})(0L)
+          val leafIdentifiers = Array.fill(${fields.size})(null.asInstanceOf[AnyRef])
           val nameTypes = Vector(..$nameTypes)
         }
       """)
     }
   }
 
-  class RootTTreeReader[T](val rootFileLocation: String, val ttreeLocation: String, rowBuilder: RootTTreeRowBuilder[T]) {
-    println(rowBuilder.nameTypes)
-
-    def getLeafDValue(leaf: Identifier, row: Int): Double = 3.14
-    def getLeafCValue(leaf: Identifier, row: Int): String = "hello"
-
-    // TLeafB, TLeafC, TLeafD, TLeafF, TLeafI, TLeafS
+  abstract class RootTTreeReader[T](rowBuilder: RootTTreeRowBuilder[T]) {
+    def rootFileLocation: String
+    def ttreeLocation: String
+    def size: Long
 
     def get(row: Int): T = rowBuilder.build(this, row)
-  }
-  object RootTTreeReader {
-    def apply[T : RootTTreeRowBuilder](rootFileLocation: String, ttreeLocation: String) =
-      new RootTTreeReader(rootFileLocation, ttreeLocation, implicitly[RootTTreeRowBuilder[T]])
+
+    def getValueLeafB(leaf: AnyRef, row: Int): Byte
+    def getValueLeafS(leaf: AnyRef, row: Int): Short
+    def getValueLeafI(leaf: AnyRef, row: Int): Int
+    def getValueLeafL(leaf: AnyRef, row: Int): Long
+    def getValueLeafF(leaf: AnyRef, row: Int): Float
+    def getValueLeafD(leaf: AnyRef, row: Int): Double
+    def getValueLeafC(leaf: AnyRef, row: Int): String
   }
 }

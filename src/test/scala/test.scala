@@ -12,6 +12,7 @@ import hep.io.root.interfaces._
 
 import org.dianahep.scaroot._
 import org.dianahep.scaroot.api._
+import org.dianahep.scaroot.freehep._
 
 class DefaultSuite extends FlatSpec with Matchers {
   "Shared object" should "load and show some TFile stuff" in {
@@ -73,8 +74,21 @@ class DefaultSuite extends FlatSpec with Matchers {
   }
 
   "RootTTree API" should "make accessors for custom case classes" in {
-    case class Something(x: Double, y: Double, z: String)
-    val rootTTree = RootTTreeReader[Something]("src/test/resources/verysimple.root", "ntuple")
-    println(rootTTree.get(0))
+    case class VerySimple(x: Float, y: Float, z: Float)
+    val verysimple = FreeHepRootTTreeReader[VerySimple]("src/test/resources/verysimple.root", "ntuple")
+    verysimple.size should be (5)
+    verysimple.get(0) should be (VerySimple(1.0F, 2.0F, 3.0F))
+    verysimple.get(1) should be (VerySimple(4.0F, 5.0F, 6.0F))
+    verysimple.get(2) should be (VerySimple(7.0F, 8.0F, 9.0F))
+    verysimple.get(3) should be (VerySimple(10.0F, 11.0F, 12.0F))
+    verysimple.get(4) should be (VerySimple(1.0F, 2.0F, 3.0F))
+
+    case class Simple(one: Int, two: Float, three: String)
+    val simple = FreeHepRootTTreeReader[Simple]("src/test/resources/simple.root", "tree")
+    simple.size should be (4)
+    simple.get(0) should be (Simple(1, 1.1F, "uno"))
+    simple.get(1) should be (Simple(2, 2.2F, "dos"))
+    simple.get(2) should be (Simple(3, 3.3F, "tres"))
+    simple.get(3) should be (Simple(4, 4.4F, "quatro"))
   }
 }

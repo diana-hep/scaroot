@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "TFile.h"
+#include "TKey.h"
 #include "TTree.h"
 #include "TLeaf.h"
 
@@ -19,6 +20,8 @@ extern "C" {
   void delete_TFile(int64_t tfile);
   int8_t tfileIsOpen(int64_t tfile);
   int8_t tfileIsZombie(int64_t tfile);
+  int64_t tfileNumKeys(int64_t tfile);
+  const char *tfileKeyName(int64_t tfile, int64_t index);
   int64_t getTTree(int64_t tfile, const char *ttreeLocation);
 
   int64_t ttreeGetNumEntries(int64_t ttree);
@@ -71,6 +74,17 @@ int8_t tfileIsZombie(int64_t tfile) {
   return tfile_ptr->IsZombie();
 }
 
+int64_t tfileNumKeys(int64_t tfile) {
+  TFile *tfile_ptr = (TFile*)tfile;
+  return tfile_ptr->GetNkeys();
+}
+
+const char *tfileKeyName(int64_t tfile, int64_t index) {
+  TFile *tfile_ptr = (TFile*)tfile;
+  TList *keys = tfile_ptr->GetListOfKeys();
+  return ((TNamed*)(keys->At(index)))->GetName();
+}
+
 int64_t getTTree(int64_t tfile, const char *ttreeLocation) {
   TTree *ttree;
   TFile *tfile_ptr = (TFile*)tfile;
@@ -104,8 +118,6 @@ const char *ttreeGetLeafType(int64_t tleaf) {
   TLeaf *tleaf_ptr = (TLeaf*)tleaf;
   return tleaf_ptr->GetTypeName();
 }
-
-// UNFINISHED BELOW
 
 int64_t new_dummy(int64_t ttree, int64_t tleaf) {
   TTree *ttree_ptr = (TTree*)ttree;
@@ -182,7 +194,7 @@ void delete_dummyD(int64_t dummy) {
 int8_t ttreeGetRow(int64_t ttree, int64_t row) {
   TTree *ttree_ptr = (TTree*)ttree;  
   ttree_ptr->GetEntry(row);
-  // if failure, return 0;
+  // TODO: if failure, return 0;
   return 1;
 }
 

@@ -5,6 +5,22 @@ import hep.io.root.interfaces._
 
 import org.dianahep.scaroot.api._
 
+package object freehep {
+  def rootFileListing(rootFileLocation: String): Seq[String] = {
+    val rootFileReader = try {
+      new RootFileReader(rootFileLocation)
+    }
+    catch {
+      case err: java.io.FileNotFoundException => throw new FreeHepException(s"""No file named "$rootFileLocation".""", Some(err))
+      case err: java.io.IOException => throw new FreeHepException(s"""The file named "$rootFileLocation" is not a ROOT file.""", Some(err))
+    }
+
+    0 until rootFileReader.nKeys map {i =>
+      rootFileReader.getKey(i).getName
+    }
+  }
+}
+
 package freehep {
   class FreeHepException(message: String, cause: Option[Throwable] = None) extends RootApiException(message, cause)
 

@@ -6,6 +6,29 @@ import com.sun.jna._
 
 import org.dianahep.scaroot.api._
 
+package object native {
+  def rootFileListing(rootFileLocation: String): Seq[String] = {
+    val tfile = NativeRoot.new_TFile(rootFileLocation)
+    if (NativeRoot.tfileIsOpen(tfile) == 0) {
+      NativeRoot.delete_TFile(tfile)
+      throw new NativeRootException(s"""No file named "$rootFileLocation".""", None)
+    }
+    if (NativeRoot.tfileIsZombie(tfile) != 0) {
+      NativeRoot.close_TFile(tfile)
+      NativeRoot.delete_TFile(tfile)
+      throw new NativeRootException(s"""The file named "$rootFileLocation" is not a ROOT file.""", None)
+    }
+
+    val out = 0L until NativeRoot.tfileNumKeys(tfile) map {index =>
+      NativeRoot.tfileKeyName(tfile, index)
+    }
+
+    NativeRoot.close_TFile(tfile)
+    NativeRoot.delete_TFile(tfile)
+    out
+  }
+}
+
 package native {
   class NativeRootException(message: String, cause: Option[Throwable] = None) extends RootApiException(message, cause)
 
@@ -17,6 +40,8 @@ package native {
     @native def delete_TFile(tfile: Long): Unit
     @native def tfileIsOpen(tfile: Long): Byte
     @native def tfileIsZombie(tfile: Long): Byte
+    @native def tfileNumKeys(tfile: Long): Long
+    @native def tfileKeyName(tfile: Long, index: Long): String
     @native def getTTree(tfile: Long, ttreeLocation: String): Long
 
     @native def ttreeGetNumEntries(ttree: Long): Long

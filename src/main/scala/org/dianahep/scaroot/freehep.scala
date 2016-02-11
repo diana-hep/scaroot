@@ -138,4 +138,12 @@ package freehep {
     def apply[CASE : RootTTreeRowBuilder](rootFileLocation: String, ttreeLocation: String) =
       new FreeHepRootTTreeReader[CASE](rootFileLocation, ttreeLocation, implicitly[RootTTreeRowBuilder[CASE]])
   }
+
+  class FreeHepRootTTreeIterator[CASE](val rootTTreeReader: RootTTreeReader[CASE, TLeaf]) extends RootTTreeIterator[CASE, TLeaf]
+  object FreeHepRootTTreeIterator {
+    def apply[CASE](rootTTreeReader: FreeHepRootTTreeReader[CASE]) =
+      new FreeHepRootTTreeIterator[CASE](rootTTreeReader)
+    def apply[CASE : RootTTreeRowBuilder](rootFileLocation: String, ttreeLocation: String) =
+      new FreeHepRootTTreeIterator[CASE](new FreeHepRootTTreeReader[CASE](rootFileLocation, ttreeLocation, implicitly[RootTTreeRowBuilder[CASE]]))
+  }
 }

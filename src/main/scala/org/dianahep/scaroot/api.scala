@@ -116,4 +116,14 @@ package api {
     def close(): Unit
   }
 
+  trait RootTTreeIterator[CASE, ID] extends Iterator[CASE] {
+    def rootTTreeReader: RootTTreeReader[CASE, ID]
+    var row = 0L
+    def hasNext = row < rootTTreeReader.size
+    def next() = {
+      val out = rootTTreeReader.get(row)
+      row += 1L
+      out
+    }
+  }
 }

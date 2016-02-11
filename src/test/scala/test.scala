@@ -79,6 +79,8 @@ class DefaultSuite extends FlatSpec with Matchers {
     verysimple.get(4) should be (VerySimple(1.0F, 2.0F, 3.0F))
     verysimple.close()
 
+    FreeHepRootTTreeIterator[VerySimple]("src/test/resources/verysimple.root", "ntuple").toList should be (List(VerySimple(1.0F, 2.0F, 3.0F), VerySimple(4.0F, 5.0F, 6.0F), VerySimple(7.0F, 8.0F, 9.0F), VerySimple(10.0F, 11.0F, 12.0F), VerySimple(1.0F, 2.0F, 3.0F)))
+
     case class VerySimple2(y: Float, x: Float)
     val verysimple2 = FreeHepRootTTreeReader[VerySimple2]("src/test/resources/verysimple.root", "ntuple")
     verysimple2.size should be (5)
@@ -144,6 +146,8 @@ class DefaultSuite extends FlatSpec with Matchers {
     verysimple.isOpen should be (true)
     verysimple.close()
     verysimple.isOpen should be (false)
+
+    NativeRootTTreeIterator[VerySimple]("src/test/resources/verysimple.root", "ntuple").toList should be (List(VerySimple(1.0F, 2.0F, 3.0F), VerySimple(4.0F, 5.0F, 6.0F), VerySimple(7.0F, 8.0F, 9.0F), VerySimple(10.0F, 11.0F, 12.0F), VerySimple(1.0F, 2.0F, 3.0F)))
 
     case class VerySimple2(y: Float, x: Float)
     val verysimple2 = NativeRootTTreeReader[VerySimple2]("src/test/resources/verysimple.root", "ntuple")

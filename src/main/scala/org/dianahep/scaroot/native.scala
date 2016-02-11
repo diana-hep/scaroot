@@ -236,4 +236,12 @@ package native {
     def apply[CASE : RootTTreeRowBuilder](rootFileLocation: String, ttreeLocation: String) =
       new NativeRootTTreeReader[CASE](rootFileLocation, ttreeLocation, implicitly[RootTTreeRowBuilder[CASE]])
   }
+
+  class NativeRootTTreeIterator[CASE](val rootTTreeReader: RootTTreeReader[CASE, Pointer]) extends RootTTreeIterator[CASE, Pointer]
+  object NativeRootTTreeIterator {
+    def apply[CASE](rootTTreeReader: NativeRootTTreeReader[CASE]) =
+      new NativeRootTTreeIterator[CASE](rootTTreeReader)
+    def apply[CASE : RootTTreeRowBuilder](rootFileLocation: String, ttreeLocation: String) =
+      new NativeRootTTreeIterator[CASE](new NativeRootTTreeReader[CASE](rootFileLocation, ttreeLocation, implicitly[RootTTreeRowBuilder[CASE]]))
+  }
 }

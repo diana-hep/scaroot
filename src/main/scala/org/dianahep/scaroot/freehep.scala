@@ -68,7 +68,10 @@ package freehep {
 
     // casts are fast and guaranteed by the above (as long as nobody gets access to our private (closed-over) rowBuilder
     def getId(index: Int) = leafIdentifiers(index)
-    def getRow(row: Long) { }    // ignored; this interface passes the row to TLeaf
+    def setupToGetRow(row: Long) {
+      if (row < 0  ||  row > size)
+        throw new FreeHepException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" only has $size rows; cannot get $row.""")
+    }
     def getValueLeafB(leaf: TLeaf, row: Long): Byte = leaf.asInstanceOf[TLeafB].getValue(row)
     def getValueLeafS(leaf: TLeaf, row: Long): Short = leaf.asInstanceOf[TLeafS].getValue(row)
     def getValueLeafI(leaf: TLeaf, row: Long): Int = leaf.asInstanceOf[TLeafI].getValue(row)

@@ -15,6 +15,8 @@ package native {
     @native def new_TFile(rootFileLocation: String): Long
     @native def close_TFile(tfile: Long): Unit
     @native def delete_TFile(tfile: Long): Unit
+    @native def tfileIsOpen(tfile: Long): Byte
+    @native def tfileIsZombie(tfile: Long): Byte
     @native def getTTree(tfile: Long, ttreeLocation: String): Long
 
     @native def ttreeGetNumEntries(ttree: Long): Long
@@ -24,7 +26,12 @@ package native {
     @native def ttreeGetLeafType(tleaf: Long): String
 
     @native def new_dummy(ttree: Long, tleaf: Long): Long
-    @native def delete_dummy(dummy: Long): Unit
+    @native def delete_dummyB(dummy: Long): Unit
+    @native def delete_dummyS(dummy: Long): Unit
+    @native def delete_dummyI(dummy: Long): Unit
+    @native def delete_dummyL(dummy: Long): Unit
+    @native def delete_dummyF(dummy: Long): Unit
+    @native def delete_dummyD(dummy: Long): Unit
     @native def ttreeGetRow(ttree: Long, row: Long): Byte
 
     @native def getValueLeafB(leaf: Long): Byte
@@ -40,7 +47,7 @@ package native {
     def isEmpty = (value == 0L)
     def get = if (isEmpty) throw new NativeRootException("Attempt to use nullptr.") else value
     def getOption = if (isEmpty) None else Some(value)
-    override def toString() = if (isEmpty) "nullptr" else value.toHexString // f"0x$value%016x"
+    override def toString() = if (isEmpty) "nullptr" else f"0x$value%016x"
   }
   // attempts to call a NativeRoot function with a nullptr argument will raise a JVM exception BEFORE calling the function
   object Pointer {
@@ -56,6 +63,15 @@ package native {
     import Pointer._
 
     private var tfile: Pointer = NativeRoot.new_TFile(rootFileLocation)
+    if (NativeRoot.tfileIsOpen(tfile) == 0) {
+      NativeRoot.delete_TFile(tfile)
+      throw new NativeRootException(s"""No file named "$rootFileLocation".""", None)
+    }
+    if (NativeRoot.tfileIsZombie(tfile) != 0) {
+      NativeRoot.close_TFile(tfile)
+      NativeRoot.delete_TFile(tfile)
+      throw new NativeRootException(s"""The file named "$rootFileLocation" is not a ROOT file.""", None)
+    }
     private def release_tfile() {
       NativeRoot.close_TFile(tfile)
       NativeRoot.delete_TFile(tfile)  // we own this pointer; have to delete it
@@ -63,6 +79,10 @@ package native {
     }
 
     private var ttree: Pointer = NativeRoot.getTTree(tfile, ttreeLocation)
+    if (ttree == nullptr) {
+      release_tfile()
+      throw new NativeRootException(s"""An error occurred when trying to read "$ttreeLocation" from file "$rootFileLocation".""", None)
+    }
     private def release_ttree() {
       ttree = nullptr  // we don't own this pointer; just forget its value
     }
@@ -72,6 +92,7 @@ package native {
     private val nameToIndex = rowBuilder.nameTypes.map(_._1).zipWithIndex.toMap
     private val nameToType = rowBuilder.nameTypes.toMap
     private val leafIdentifiers = Array.fill(rowBuilder.nameTypes.size)(nullptr)
+    private val leafDeleters = Array.fill(rowBuilder.nameTypes.size)(() => ())
 
     0L until NativeRoot.ttreeGetNumLeaves(ttree) foreach {i =>
       val tleaf: Pointer = NativeRoot.ttreeGetLeaf(ttree, i)
@@ -81,18 +102,22 @@ package native {
       nameToIndex.get(tleafName) match {
         case Some(index) =>
           // put the TLeaf pointer in the array for RootTTreeRowBuilder to look up
-          leafIdentifiers(index) = NativeRoot.new_dummy(ttree, tleaf)
+          val dummy = NativeRoot.new_dummy(ttree, tleaf)
+          leafIdentifiers(index) = dummy
 
           // verify that the leaf type matches the expected type
           (nameToType(tleafName), tleafType) match {
-            case (FieldType.Byte, "Int8_t") =>
-            case (FieldType.Short, "Int16_t") =>
-            case (FieldType.Int, "Int_t") =>
-            case (FieldType.Long, "Int64_t") =>
-            case (FieldType.Float, "Float_t") =>
-            case (FieldType.Double, "Double_t") =>
-            case (FieldType.String, "Char_t") =>
+            case (FieldType.Byte,   "Int8_t")   => leafDeleters(index) = {() => NativeRoot.delete_dummyB(dummy); leafIdentifiers(index) = nullptr}
+            case (FieldType.Short,  "Int16_t")  => leafDeleters(index) = {() => NativeRoot.delete_dummyS(dummy); leafIdentifiers(index) = nullptr}
+            case (FieldType.Int,    "Int_t")    => leafDeleters(index) = {() => NativeRoot.delete_dummyI(dummy); leafIdentifiers(index) = nullptr}
+            case (FieldType.Long,   "Int64_t")  => leafDeleters(index) = {() => NativeRoot.delete_dummyL(dummy); leafIdentifiers(index) = nullptr}
+            case (FieldType.Float,  "Float_t")  => leafDeleters(index) = {() => NativeRoot.delete_dummyF(dummy); leafIdentifiers(index) = nullptr}
+            case (FieldType.Double, "Double_t") => leafDeleters(index) = {() => NativeRoot.delete_dummyD(dummy); leafIdentifiers(index) = nullptr}
+            case (FieldType.String, "Char_t")   => leafDeleters(index) = {() => leafIdentifiers(index) = nullptr}
             case _ =>
+              release_tfile()
+              release_ttree()
+              leafDeleters.foreach(f => f())
               throw new NativeRootException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" has leaf "$tleafName" with type $tleafType, but expecting ${nameToType(tleafName)}.""", None)
           }
 
@@ -100,19 +125,25 @@ package native {
       }
     }
 
-    val missing = leafIdentifiers.zipWithIndex collect {case (`nullptr`, i) => rowBuilder.nameTypes(i)._1}
-    if (!missing.isEmpty)
-        throw new NativeRootException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" has no leaves corresponding to the following fields: ${missing.map("\"" + _ + "\"").mkString(" ")}.""")
-
     def release_dummies() {
-      leafIdentifiers.foreach(NativeRoot.delete_dummy(_))
+      leafDeleters.foreach(f => f())
+    }
+
+    val missing = leafIdentifiers.zipWithIndex collect {case (`nullptr`, i) => rowBuilder.nameTypes(i)._1}
+    if (!missing.isEmpty) {
+      release_tfile()
+      release_ttree()
+      release_dummies()
+      throw new NativeRootException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" has no leaves corresponding to the following fields: ${missing.map("\"" + _ + "\"").mkString(" ")}.""")
     }
 
     // casts are fast and guaranteed by the above (as long as nobody gets access to our private (closed-over) rowBuilder
     def getId(index: Int) = leafIdentifiers(index)
-    def getRow(row: Long) {
+    def setupToGetRow(row: Long) {
+      if (row < 0  ||  row > size)
+        throw new NativeRootException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" only has $size rows; cannot get $row.""")
       if (NativeRoot.ttreeGetRow(ttree, row) == 0)
-        throw new Exception
+        throw new NativeRootException(s"""Failed to get entry $row from TTree named "$ttreeLocation" in file "$rootFileLocation".""")
     }
     def getValueLeafB(leaf: Pointer, row: Long): Byte = NativeRoot.getValueLeafB(leaf)
     def getValueLeafS(leaf: Pointer, row: Long): Short = NativeRoot.getValueLeafS(leaf)

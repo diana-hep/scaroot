@@ -17,6 +17,8 @@ extern "C" {
   int64_t new_TFile(const char *rootFileLocation);
   void close_TFile(int64_t tfile);
   void delete_TFile(int64_t tfile);
+  int8_t tfileIsOpen(int64_t tfile);
+  int8_t tfileIsZombie(int64_t tfile);
   int64_t getTTree(int64_t tfile, const char *ttreeLocation);
 
   int64_t ttreeGetNumEntries(int64_t ttree);
@@ -27,7 +29,12 @@ extern "C" {
   const char *ttreeGetLeafType(int64_t tleaf);
 
   int64_t new_dummy(int64_t ttree, int64_t tleaf);
-  void delete_dummy(int64_t dummy);
+  void delete_dummyB(int64_t dummy);
+  void delete_dummyS(int64_t dummy);
+  void delete_dummyI(int64_t dummy);
+  void delete_dummyL(int64_t dummy);
+  void delete_dummyF(int64_t dummy);
+  void delete_dummyD(int64_t dummy);
   int8_t ttreeGetRow(int64_t ttree, int64_t row);
 
   int8_t getValueLeafB(int64_t tleaf);
@@ -52,6 +59,16 @@ void close_TFile(int64_t tfile) {
 void delete_TFile(int64_t tfile) {
   TFile *tfile_ptr = (TFile*)tfile;
   delete tfile_ptr;
+}
+
+int8_t tfileIsOpen(int64_t tfile) {
+  TFile *tfile_ptr = (TFile*)tfile;
+  return tfile_ptr->IsOpen();
+}
+
+int8_t tfileIsZombie(int64_t tfile) {
+  TFile *tfile_ptr = (TFile*)tfile;
+  return tfile_ptr->IsZombie();
 }
 
 int64_t getTTree(int64_t tfile, const char *ttreeLocation) {
@@ -132,8 +149,33 @@ int64_t new_dummy(int64_t ttree, int64_t tleaf) {
   }
 }
 
-void delete_dummy(int64_t dummy) {
-  void *dummy_ptr = (void*)dummy;
+void delete_dummyB(int64_t dummy) {
+  int8_t *dummy_ptr = (int8_t*)dummy;
+  delete dummy_ptr;
+}
+
+void delete_dummyS(int64_t dummy) {
+  int16_t *dummy_ptr = (int16_t*)dummy;
+  delete dummy_ptr;
+}
+
+void delete_dummyI(int64_t dummy) {
+  int32_t *dummy_ptr = (int32_t*)dummy;
+  delete dummy_ptr;
+}
+
+void delete_dummyL(int64_t dummy) {
+  int64_t *dummy_ptr = (int64_t*)dummy;
+  delete dummy_ptr;
+}
+
+void delete_dummyF(int64_t dummy) {
+  float_t *dummy_ptr = (float_t*)dummy;
+  delete dummy_ptr;
+}
+
+void delete_dummyD(int64_t dummy) {
+  double_t *dummy_ptr = (double_t*)dummy;
   delete dummy_ptr;
 }
 

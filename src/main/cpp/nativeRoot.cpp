@@ -20,8 +20,13 @@ extern "C" {
   void delete_TFile(int64_t tfile);
   int8_t tfileIsOpen(int64_t tfile);
   int8_t tfileIsZombie(int64_t tfile);
-  int64_t tfileNumKeys(int64_t tfile);
-  const char *tfileKeyName(int64_t tfile, int64_t index);
+
+  int64_t tdirNumKeys(int64_t tdir);
+  const char *tdirKeyName(int64_t tdir, int64_t index);
+  int8_t tdirKeyIsTTree(int64_t tdir, int64_t index);
+  int8_t tdirKeyIsTDirectory(int64_t tdir, int64_t index);
+  int64_t tdirKeyGet(int64_t tdir, int64_t index);
+
   int64_t getTTree(int64_t tfile, const char *ttreeLocation);
 
   int64_t ttreeGetNumEntries(int64_t ttree);
@@ -50,42 +55,86 @@ extern "C" {
 }
 
 int64_t new_TFile(const char *rootFileLocation) {
+  // std::cout << "new_TFile" << std::endl;
+
   TFile *tfile = new TFile(rootFileLocation);
   return (int64_t)tfile;
 }
 
 void close_TFile(int64_t tfile) {
+  // std::cout << "close_TFile" << std::endl;
+
   TFile *tfile_ptr = (TFile*)tfile;
   tfile_ptr->Close();
 }
 
 void delete_TFile(int64_t tfile) {
+  // std::cout << "delete_TFile" << std::endl;
+
   TFile *tfile_ptr = (TFile*)tfile;
   delete tfile_ptr;
 }
 
 int8_t tfileIsOpen(int64_t tfile) {
+  // std::cout << "tfileIsOpen" << std::endl;
+
   TFile *tfile_ptr = (TFile*)tfile;
   return tfile_ptr->IsOpen();
 }
 
 int8_t tfileIsZombie(int64_t tfile) {
+  // std::cout << "tfileIsZombie" << std::endl;
+
   TFile *tfile_ptr = (TFile*)tfile;
   return tfile_ptr->IsZombie();
 }
 
-int64_t tfileNumKeys(int64_t tfile) {
-  TFile *tfile_ptr = (TFile*)tfile;
-  return tfile_ptr->GetNkeys();
+int64_t tdirNumKeys(int64_t tdir) {
+  // std::cout << "tdirNumKeys" << std::endl;
+
+  TDirectory *tdir_ptr = (TDirectory*)tdir;
+  return tdir_ptr->GetNkeys();
 }
 
-const char *tfileKeyName(int64_t tfile, int64_t index) {
-  TFile *tfile_ptr = (TFile*)tfile;
-  TList *keys = tfile_ptr->GetListOfKeys();
+const char *tdirKeyName(int64_t tdir, int64_t index) {
+  // std::cout << "tdirKeyName" << std::endl;
+
+  TDirectory *tdir_ptr = (TDirectory*)tdir;
+  TList *keys = tdir_ptr->GetListOfKeys();
   return ((TNamed*)(keys->At(index)))->GetName();
 }
 
+int8_t tdirKeyIsTTree(int64_t tdir, int64_t index) {
+  // std::cout << "tdirKeyIsTTree" << std::endl;
+
+  TDirectory *tdir_ptr = (TDirectory*)tdir;
+  TList *keys = tdir_ptr->GetListOfKeys();
+  TKey *obj = (TKey*)(keys->At(index));
+  std::string className = obj->GetClassName();
+  return (className == std::string("TTree")  ||  className == std::string("TNtuple")  ||  className == std::string("TNtupleD"));
+}
+
+int8_t tdirKeyIsTDirectory(int64_t tdir, int64_t index) {
+  // std::cout << "tdirKeyIsTDirectory" << std::endl;
+
+  TDirectory *tdir_ptr = (TDirectory*)tdir;
+  TList *keys = tdir_ptr->GetListOfKeys();
+  TKey *obj = (TKey*)(keys->At(index));
+  std::string className = obj->GetClassName();
+  return (className == std::string("TDirectory")  ||  className == std::string("TDirectoryFile")  ||  className == std::string("TFile"));
+}
+
+int64_t tdirKeyGet(int64_t tdir, int64_t index) {
+  // std::cout << "tdirKeyGet" << std::endl;
+
+  TDirectory *tdir_ptr = (TDirectory*)tdir;
+  TList *keys = tdir_ptr->GetListOfKeys();
+  return (int64_t)(((TKey*)(keys->At(index)))->ReadObj());
+}
+
 int64_t getTTree(int64_t tfile, const char *ttreeLocation) {
+  // std::cout << "getTTree" << std::endl;
+
   TTree *ttree;
   TFile *tfile_ptr = (TFile*)tfile;
   tfile_ptr->GetObject(ttreeLocation, ttree);
@@ -93,33 +142,45 @@ int64_t getTTree(int64_t tfile, const char *ttreeLocation) {
 }
 
 int64_t ttreeGetNumEntries(int64_t ttree) {
+  // std::cout << "ttreeGetNumEntries" << std::endl;
+
   TTree *ttree_ptr = (TTree*)ttree;
   return ttree_ptr->GetEntries();
 }
 
 int64_t ttreeGetNumLeaves(int64_t ttree) {
+  // std::cout << "ttreeGetNumLeaves" << std::endl;
+
   TTree *ttree_ptr = (TTree*)ttree;
   TObjArray *tObjArray = ttree_ptr->GetListOfLeaves();
   return tObjArray->GetEntries();
 }
 
 int64_t ttreeGetLeaf(int64_t ttree, int64_t i) {
+  // std::cout << "ttreeGetLeaf" << std::endl;
+
   TTree *ttree_ptr = (TTree*)ttree;
   TObjArray *tObjArray = ttree_ptr->GetListOfLeaves();
   return (int64_t)(tObjArray->At(i));
 }
 
 const char *ttreeGetLeafName(int64_t tleaf) {
+  // std::cout << "ttreeGetLeafName" << std::endl;
+
   TLeaf *tleaf_ptr = (TLeaf*)tleaf;
   return tleaf_ptr->GetName();
 }
 
 const char *ttreeGetLeafType(int64_t tleaf) {
+  // std::cout << "ttreeGetLeafType" << std::endl;
+
   TLeaf *tleaf_ptr = (TLeaf*)tleaf;
   return tleaf_ptr->GetTypeName();
 }
 
 int64_t new_dummy(int64_t ttree, int64_t tleaf) {
+  // std::cout << "new_dummy" << std::endl;
+
   TTree *ttree_ptr = (TTree*)ttree;
   TLeaf *tleaf_ptr = (TLeaf*)tleaf;
   std::string typeName = std::string(ttreeGetLeafType(tleaf));
@@ -157,41 +218,55 @@ int64_t new_dummy(int64_t ttree, int64_t tleaf) {
     return (int64_t)tleaf;
   }
   else {
-    std::cout << "HELP " << typeName << std::endl;
+    // std::cout << "Unknown TLeaf type: " << typeName << std::endl;
   }
 }
 
 void delete_dummyB(int64_t dummy) {
+  // std::cout << "delete_dummyB" << std::endl;
+
   int8_t *dummy_ptr = (int8_t*)dummy;
   delete dummy_ptr;
 }
 
 void delete_dummyS(int64_t dummy) {
+  // std::cout << "delete_dummyS" << std::endl;
+
   int16_t *dummy_ptr = (int16_t*)dummy;
   delete dummy_ptr;
 }
 
 void delete_dummyI(int64_t dummy) {
+  // std::cout << "delete_dummyI" << std::endl;
+
   int32_t *dummy_ptr = (int32_t*)dummy;
   delete dummy_ptr;
 }
 
 void delete_dummyL(int64_t dummy) {
+  // std::cout << "delete_dummyL" << std::endl;
+
   int64_t *dummy_ptr = (int64_t*)dummy;
   delete dummy_ptr;
 }
 
 void delete_dummyF(int64_t dummy) {
+  // std::cout << "delete_dummyF" << std::endl;
+
   float_t *dummy_ptr = (float_t*)dummy;
   delete dummy_ptr;
 }
 
 void delete_dummyD(int64_t dummy) {
+  // std::cout << "delete_dummyD" << std::endl;
+
   double_t *dummy_ptr = (double_t*)dummy;
   delete dummy_ptr;
 }
 
 int8_t ttreeGetRow(int64_t ttree, int64_t row) {
+  // std::cout << "ttreeGetRow" << std::endl;
+
   TTree *ttree_ptr = (TTree*)ttree;  
   ttree_ptr->GetEntry(row);
   // TODO: if failure, return 0;
@@ -199,30 +274,44 @@ int8_t ttreeGetRow(int64_t ttree, int64_t row) {
 }
 
 int8_t getValueLeafB(int64_t dummy) {
+  // std::cout << "getValueLeafB" << std::endl;
+
   return *((int8_t*)dummy);
 }
 
 int16_t getValueLeafS(int64_t dummy) {
+  // std::cout << "getValueLeafS" << std::endl;
+
   return *((int16_t*)dummy);
 }
 
 int32_t getValueLeafI(int64_t dummy) {
+  // std::cout << "getValueLeafI" << std::endl;
+
   return *((int32_t*)dummy);
 }
 
 int64_t getValueLeafL(int64_t dummy) {
+  // std::cout << "getValueLeafL" << std::endl;
+
   return *((int64_t*)dummy);
 }
 
 float_t getValueLeafF(int64_t dummy) {
+  // std::cout << "getValueLeafF" << std::endl;
+
   return *((float_t*)dummy);
 }
 
 double_t getValueLeafD(int64_t dummy) {
+  // std::cout << "getValueLeafD" << std::endl;
+
   return *((double_t*)dummy);
 }
 
 const char *getValueLeafC(int64_t tleaf) {
+  // std::cout << "getValueLeafC" << std::endl;
+
   TLeafC *tleaf_ptr = (TLeafC*)tleaf;
   return tleaf_ptr->GetValueString();
 }

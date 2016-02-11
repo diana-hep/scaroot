@@ -66,8 +66,8 @@ class DefaultSuite extends FlatSpec with Matchers {
   }
 
   "FreeHepRootTTreeReader" should "access data in case class form" in {
-    freehep.rootFileListing("src/test/resources/verysimple.root") should be (Seq("ntuple"))
-    freehep.rootTTreeLeaves("src/test/resources/verysimple.root", "ntuple") should be (Seq("x" -> FieldType.Float, "y" -> FieldType.Float, "z" -> FieldType.Float))
+    freehep.ttreesInFile("src/test/resources/verysimple.root") should be (Seq("ntuple"))
+    freehep.leavesInTTree("src/test/resources/verysimple.root", "ntuple") should be (Seq("x" -> FieldType.Float, "y" -> FieldType.Float, "z" -> FieldType.Float))
 
     case class VerySimple(x: Float, y: Float, z: Float)
     val verysimple = FreeHepRootTTreeReader[VerySimple]("src/test/resources/verysimple.root", "ntuple")
@@ -77,7 +77,7 @@ class DefaultSuite extends FlatSpec with Matchers {
     verysimple.get(2) should be (VerySimple(7.0F, 8.0F, 9.0F))
     verysimple.get(3) should be (VerySimple(10.0F, 11.0F, 12.0F))
     verysimple.get(4) should be (VerySimple(1.0F, 2.0F, 3.0F))
-    verysimple.close()
+    verysimple.release()
 
     FreeHepRootTTreeIterator[VerySimple]("src/test/resources/verysimple.root", "ntuple").toList should be (List(VerySimple(1.0F, 2.0F, 3.0F), VerySimple(4.0F, 5.0F, 6.0F), VerySimple(7.0F, 8.0F, 9.0F), VerySimple(10.0F, 11.0F, 12.0F), VerySimple(1.0F, 2.0F, 3.0F)))
 
@@ -89,10 +89,10 @@ class DefaultSuite extends FlatSpec with Matchers {
     verysimple2.get(2) should be (VerySimple2(8.0F, 7.0F))
     verysimple2.get(3) should be (VerySimple2(11.0F, 10.0F))
     verysimple2.get(4) should be (VerySimple2(2.0F, 1.0F))
-    verysimple2.close()
+    verysimple2.release()
 
-    freehep.rootFileListing("src/test/resources/simple.root") should be (Seq("tree"))
-    freehep.rootTTreeLeaves("src/test/resources/simple.root", "tree") should be (Seq("one" -> FieldType.Int, "two" -> FieldType.Float, "three" -> FieldType.String))
+    freehep.ttreesInFile("src/test/resources/simple.root") should be (Seq("tree"))
+    freehep.leavesInTTree("src/test/resources/simple.root", "tree") should be (Seq("one" -> FieldType.Int, "two" -> FieldType.Float, "three" -> FieldType.String))
 
     case class Simple(one: Int, two: Float, three: String)
     val simple = FreeHepRootTTreeReader[Simple]("src/test/resources/simple.root", "tree")
@@ -101,7 +101,7 @@ class DefaultSuite extends FlatSpec with Matchers {
     simple.get(1) should be (Simple(2, 2.2F, "dos"))
     simple.get(2) should be (Simple(3, 3.3F, "tres"))
     simple.get(3) should be (Simple(4, 4.4F, "quatro"))
-    simple.close()
+    simple.release()
 
     case class Simple2(three: String, one: Int)
     val simple2 = FreeHepRootTTreeReader[Simple2]("src/test/resources/simple.root", "tree")
@@ -110,7 +110,7 @@ class DefaultSuite extends FlatSpec with Matchers {
     simple2.get(1) should be (Simple2("dos", 2))
     simple2.get(2) should be (Simple2("tres", 3))
     simple2.get(3) should be (Simple2("quatro", 4))
-    simple2.close()
+    simple2.release()
 
     case class BrokenSimple(one: Int, two: Float, three: String, four: Double)
     a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[BrokenSimple]("src/test/resources/simple.root", "tree") }
@@ -118,8 +118,8 @@ class DefaultSuite extends FlatSpec with Matchers {
     case class BrokenSimple2(one: Int, two: Double, three: String)
     a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[BrokenSimple2]("src/test/resources/simple.root", "tree") }
 
-    a [FreeHepException] should be thrownBy { freehep.rootFileListing("src/test/resources/simpleton.root") should be (Seq("tree")) }
-    a [FreeHepException] should be thrownBy { freehep.rootFileListing("src/test/resources/makeSimple.C") should be (Seq("tree")) }
+    a [FreeHepException] should be thrownBy { freehep.ttreesInFile("src/test/resources/simpleton.root") }
+    a [FreeHepException] should be thrownBy { freehep.ttreesInFile("src/test/resources/makeSimple.C") }
 
     a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[Simple]("src/test/resources/simpleton.root", "tree") }
     a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[Simple]("src/test/resources/makeSimple.C", "tree") }
@@ -132,8 +132,8 @@ class DefaultSuite extends FlatSpec with Matchers {
   }
 
   "NativeRootTTreeReader" should "access data in case class form" in {
-    native.rootFileListing("src/test/resources/verysimple.root") should be (Seq("ntuple"))
-    native.rootTTreeLeaves("src/test/resources/verysimple.root", "ntuple") should be (Seq("x" -> FieldType.Float, "y" -> FieldType.Float, "z" -> FieldType.Float))
+    native.ttreesInFile("src/test/resources/verysimple.root") should be (Seq("ntuple"))
+    native.leavesInTTree("src/test/resources/verysimple.root", "ntuple") should be (Seq("x" -> FieldType.Float, "y" -> FieldType.Float, "z" -> FieldType.Float))
 
     case class VerySimple(x: Float, y: Float, z: Float)
     val verysimple = NativeRootTTreeReader[VerySimple]("src/test/resources/verysimple.root", "ntuple")
@@ -143,9 +143,9 @@ class DefaultSuite extends FlatSpec with Matchers {
     verysimple.get(2) should be (VerySimple(7.0F, 8.0F, 9.0F))
     verysimple.get(3) should be (VerySimple(10.0F, 11.0F, 12.0F))
     verysimple.get(4) should be (VerySimple(1.0F, 2.0F, 3.0F))
-    verysimple.isOpen should be (true)
-    verysimple.close()
-    verysimple.isOpen should be (false)
+    verysimple.released should be (false)
+    verysimple.release()
+    verysimple.released should be (true)
 
     NativeRootTTreeIterator[VerySimple]("src/test/resources/verysimple.root", "ntuple").toList should be (List(VerySimple(1.0F, 2.0F, 3.0F), VerySimple(4.0F, 5.0F, 6.0F), VerySimple(7.0F, 8.0F, 9.0F), VerySimple(10.0F, 11.0F, 12.0F), VerySimple(1.0F, 2.0F, 3.0F)))
 
@@ -157,12 +157,12 @@ class DefaultSuite extends FlatSpec with Matchers {
     verysimple2.get(2) should be (VerySimple2(8.0F, 7.0F))
     verysimple2.get(3) should be (VerySimple2(11.0F, 10.0F))
     verysimple2.get(4) should be (VerySimple2(2.0F, 1.0F))
-    verysimple2.isOpen should be (true)
-    verysimple2.close()
-    verysimple2.isOpen should be (false)
+    verysimple2.released should be (false)
+    verysimple2.release()
+    verysimple2.released should be (true)
 
-    native.rootFileListing("src/test/resources/simple.root") should be (Seq("tree"))
-    native.rootTTreeLeaves("src/test/resources/simple.root", "tree") should be (Seq("one" -> FieldType.Int, "two" -> FieldType.Float, "three" -> FieldType.String))
+    native.ttreesInFile("src/test/resources/simple.root") should be (Seq("tree"))
+    native.leavesInTTree("src/test/resources/simple.root", "tree") should be (Seq("one" -> FieldType.Int, "two" -> FieldType.Float, "three" -> FieldType.String))
 
     case class Simple(one: Int, two: Float, three: String)
     val simple = NativeRootTTreeReader[Simple]("src/test/resources/simple.root", "tree")
@@ -171,9 +171,9 @@ class DefaultSuite extends FlatSpec with Matchers {
     simple.get(1) should be (Simple(2, 2.2F, "dos"))
     simple.get(2) should be (Simple(3, 3.3F, "tres"))
     simple.get(3) should be (Simple(4, 4.4F, "quatro"))
-    simple.isOpen should be (true)
-    simple.close()
-    simple.isOpen should be (false)
+    simple.released should be (false)
+    simple.release()
+    simple.released should be (true)
 
     case class Simple2(three: String, one: Int)
     val simple2 = NativeRootTTreeReader[Simple2]("src/test/resources/simple.root", "tree")
@@ -182,9 +182,9 @@ class DefaultSuite extends FlatSpec with Matchers {
     simple2.get(1) should be (Simple2("dos", 2))
     simple2.get(2) should be (Simple2("tres", 3))
     simple2.get(3) should be (Simple2("quatro", 4))
-    simple2.isOpen should be (true)
-    simple2.close()
-    simple2.isOpen should be (false)
+    simple2.released should be (false)
+    simple2.release()
+    simple2.released should be (true)
 
     case class BrokenSimple(one: Int, two: Float, three: String, four: Double)
     a [NativeRootException] should be thrownBy { NativeRootTTreeReader[BrokenSimple]("src/test/resources/simple.root", "tree") }
@@ -192,8 +192,8 @@ class DefaultSuite extends FlatSpec with Matchers {
     case class BrokenSimple2(one: Int, two: Double, three: String)
     a [NativeRootException] should be thrownBy { NativeRootTTreeReader[BrokenSimple2]("src/test/resources/simple.root", "tree") }
 
-    a [NativeRootException] should be thrownBy { native.rootFileListing("src/test/resources/simpleton.root") should be (Seq("tree")) }
-    a [NativeRootException] should be thrownBy { native.rootFileListing("src/test/resources/makeSimple.C") should be (Seq("tree")) }
+    a [NativeRootException] should be thrownBy { native.ttreesInFile("src/test/resources/simpleton.root") }
+    a [NativeRootException] should be thrownBy { native.ttreesInFile("src/test/resources/makeSimple.C") }
 
     a [NativeRootException] should be thrownBy { NativeRootTTreeReader[Simple]("src/test/resources/simpleton.root", "tree") }
     a [NativeRootException] should be thrownBy { NativeRootTTreeReader[Simple]("src/test/resources/makeSimple.C", "tree") }

@@ -112,14 +112,19 @@ package api {
     def getValueLeafD(leaf: ID, row: Long): Double
     def getValueLeafC(leaf: ID, row: Long): String
 
-    def isOpen: Boolean
-    def close(): Unit
+    def released: Boolean
+    def release(): Unit
   }
 
   trait RootTTreeIterator[CASE, ID] extends Iterator[CASE] {
     def rootTTreeReader: RootTTreeReader[CASE, ID]
     var row = 0L
-    def hasNext = row < rootTTreeReader.size
+    def hasNext = {
+      val out = row < rootTTreeReader.size
+      if (!out  &&  !rootTTreeReader.released)
+        rootTTreeReader.release()
+      out
+    }
     def next() = {
       val out = rootTTreeReader.get(row)
       row += 1L

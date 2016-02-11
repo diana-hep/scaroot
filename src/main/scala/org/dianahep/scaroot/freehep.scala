@@ -6,7 +6,7 @@ import hep.io.root.interfaces._
 import org.dianahep.scaroot.api._
 
 package object freehep {
-  def rootFileListing(rootFileLocation: String): Seq[String] = {
+  def ttreesInFile(rootFileLocation: String): Seq[String] = {
     val rootFileReader = try {
       new RootFileReader(rootFileLocation)
     }
@@ -15,12 +15,28 @@ package object freehep {
       case err: java.io.IOException => throw new FreeHepException(s"""The file named "$rootFileLocation" is not a ROOT file.""", Some(err))
     }
 
-    0 until rootFileReader.nKeys map {i =>
-      rootFileReader.getKey(i).getName
-    }
+    def rootInstanceOf(cls: RootClass, clsName: String): Boolean =
+      if (cls.getClassName == clsName)
+        true
+      else if (cls.getSuperClasses.isEmpty)
+        false
+      else
+        cls.getSuperClasses.exists(rootInstanceOf(_, clsName))
+
+    def search(dir: TDirectory): List[String] =
+      (0 until dir.nKeys).toList flatMap {i =>
+        if (rootInstanceOf(dir.getKey(i).getObjectClass, "TTree"))
+          List(dir.getKey(i).getName)
+        else if (rootInstanceOf(dir.getKey(i).getObjectClass, "TDirectory"))
+          search(dir.getKey(i).getObject.asInstanceOf[TDirectory]).map(dir.getKey(i).getName + "/" + _)
+        else
+          Nil
+      }
+
+    search(rootFileReader)
   }
 
-  def rootTTreeLeaves(rootFileLocation: String, ttreeLocation: String): Seq[(String, FieldType)] = {
+  def leavesInTTree(rootFileLocation: String, ttreeLocation: String): Seq[(String, FieldType)] = {
     val rootFileReader = try {
       new RootFileReader(rootFileLocation)
     }
@@ -131,8 +147,8 @@ package freehep {
     def getValueLeafD(leaf: TLeaf, row: Long): Double = leaf.asInstanceOf[TLeafD].getValue(row)
     def getValueLeafC(leaf: TLeaf, row: Long): String = leaf.asInstanceOf[TLeafC].getValue(row)
 
-    def isOpen = true
-    def close() { }
+    def released = false
+    def release() { }
   }
   object FreeHepRootTTreeReader {
     def apply[CASE : RootTTreeRowBuilder](rootFileLocation: String, ttreeLocation: String) =

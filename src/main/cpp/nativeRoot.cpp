@@ -34,7 +34,7 @@ extern "C" {
   int16_t getValueLeafS(int64_t tleaf);
   int32_t getValueLeafI(int64_t tleaf);
   int64_t getValueLeafL(int64_t tleaf);
-  float getValueLeafF(int64_t tleaf);
+  float_t getValueLeafF(int64_t tleaf);
   double_t getValueLeafD(int64_t tleaf);
   const char *getValueLeafC(int64_t tleaf);
 }
@@ -94,35 +94,38 @@ int64_t new_dummy(int64_t ttree, int64_t tleaf) {
   TTree *ttree_ptr = (TTree*)ttree;
   TLeaf *tleaf_ptr = (TLeaf*)tleaf;
   std::string typeName = std::string(ttreeGetLeafType(tleaf));
-  if (typeName == std::string("TLeafB")) {
+  if (typeName == std::string("Int8_t")) {
     int8_t *dummy = new int8_t;
     tleaf_ptr->GetBranch()->SetAddress(dummy);
     return (int64_t)dummy;
   }
-  else if (typeName == std::string("TLeafS")) {
+  else if (typeName == std::string("Int16_t")) {
     int16_t *dummy = new int16_t;
     tleaf_ptr->GetBranch()->SetAddress(dummy);
     return (int64_t)dummy;
   }
-  else if (typeName == std::string("TLeafI")) {
+  else if (typeName == std::string("Int_t")) {
     int32_t *dummy = new int32_t;
     tleaf_ptr->GetBranch()->SetAddress(dummy);
     return (int64_t)dummy;
   }
-  else if (typeName == std::string("TLeafL")) {
+  else if (typeName == std::string("Int64_t")) {
     int64_t *dummy = new int64_t;
     tleaf_ptr->GetBranch()->SetAddress(dummy);
     return (int64_t)dummy;
   }
-  else if (typeName == std::string("TLeafF")) {
-    float *dummy = new float;
+  else if (typeName == std::string("Float_t")) {
+    float_t *dummy = new float_t;
     tleaf_ptr->GetBranch()->SetAddress(dummy);
     return (int64_t)dummy;
   }
-  else if (typeName == std::string("TLeafD")) {
-    double *dummy = new double;
+  else if (typeName == std::string("Double_t")) {
+    double_t *dummy = new double_t;
     tleaf_ptr->GetBranch()->SetAddress(dummy);
     return (int64_t)dummy;
+  }
+  else if (typeName == std::string("Char_t")) {
+    return (int64_t)tleaf;
   }
   else {
     std::cout << "HELP " << typeName << std::endl;
@@ -157,12 +160,12 @@ int64_t getValueLeafL(int64_t dummy) {
   return *((int64_t*)dummy);
 }
 
-float getValueLeafF(int64_t dummy) {
-  return *((float*)dummy);
+float_t getValueLeafF(int64_t dummy) {
+  return *((float_t*)dummy);
 }
 
-double getValueLeafD(int64_t dummy) {
-  return *((double*)dummy);
+double_t getValueLeafD(int64_t dummy) {
+  return *((double_t*)dummy);
 }
 
 const char *getValueLeafC(int64_t tleaf) {

@@ -43,19 +43,17 @@ package native {
     override def toString() = if (isEmpty) "nullptr" else value.toHexString // f"0x$value%016x"
   }
   // attempts to call a NativeRoot function with a nullptr argument will raise a JVM exception BEFORE calling the function
-}
+  object Pointer {
+    val nullptr = Pointer(0L)
+    implicit def pointerToLong(p: Pointer) = p.get
+    implicit def longToPointer(l: Long) = Pointer(l)
+  }
 
-package object native {
-  val nullptr = Pointer(0L)
-  implicit def pointerToLong(p: Pointer) = p.get
-  implicit def longToPointer(l: Long) = Pointer(l)
-}
-
-package native {
   class NativeRootTTreeReader[CASE](val rootFileLocation: String,
                                     val ttreeLocation: String,
                                     rowBuilder: RootTTreeRowBuilder[CASE]) extends
                           RootTTreeReader[CASE, Pointer](rowBuilder: RootTTreeRowBuilder[CASE]) {
+    import Pointer._
 
     private var tfile: Pointer = NativeRoot.new_TFile(rootFileLocation)
     private def release_tfile() {
@@ -73,6 +71,7 @@ package native {
 
     private val nameToIndex = rowBuilder.nameTypes.map(_._1).zipWithIndex.toMap
     private val nameToType = rowBuilder.nameTypes.toMap
+    private val leafIdentifiers = Array.fill(rowBuilder.nameTypes.size)(nullptr)
 
     0L until NativeRoot.ttreeGetNumLeaves(ttree) foreach {i =>
       val tleaf: Pointer = NativeRoot.ttreeGetLeaf(ttree, i)
@@ -82,36 +81,35 @@ package native {
       nameToIndex.get(tleafName) match {
         case Some(index) =>
           // put the TLeaf pointer in the array for RootTTreeRowBuilder to look up
-          rowBuilder.leafIdentifiers(index) = NativeRoot.new_dummy(ttree, tleaf)
+          leafIdentifiers(index) = NativeRoot.new_dummy(ttree, tleaf)
 
           // verify that the leaf type matches the expected type
-          (nameToType, tleafType) match {
-            case (FieldType.Byte, "TLeafB") =>
-            case (FieldType.Short, "TLeafS") =>
-            case (FieldType.Int, "TLeafI") =>
-            case (FieldType.Long, "TLeafL") =>
-            case (FieldType.Float, "TLeafF") =>
-            case (FieldType.Double, "TLeafD") =>
-            case (FieldType.String, "TLeafC") =>
+          (nameToType(tleafName), tleafType) match {
+            case (FieldType.Byte, "Int8_t") =>
+            case (FieldType.Short, "Int16_t") =>
+            case (FieldType.Int, "Int_t") =>
+            case (FieldType.Long, "Int64_t") =>
+            case (FieldType.Float, "Float_t") =>
+            case (FieldType.Double, "Double_t") =>
+            case (FieldType.String, "Char_t") =>
             case _ =>
-              throw new NativeRootException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" has leaf "$tleafName" with type ${tleaf.getClass.getName}, but expecting ${nameToType(tleafName)}.""", None)
+              throw new NativeRootException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" has leaf "$tleafName" with type $tleafType, but expecting ${nameToType(tleafName)}.""", None)
           }
 
         case None =>
       }
     }
 
-    val missing = rowBuilder.leafIdentifiers.zipWithIndex collect {case (nullptr, i) => rowBuilder.nameTypes(i)._1}
+    val missing = leafIdentifiers.zipWithIndex collect {case (`nullptr`, i) => rowBuilder.nameTypes(i)._1}
     if (!missing.isEmpty)
         throw new NativeRootException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" has no leaves corresponding to the following fields: ${missing.map("\"" + _ + "\"").mkString(" ")}.""")
 
     def release_dummies() {
-      rowBuilder.leafIdentifiers foreach {dummy =>
-        NativeRoot.delete_dummy(dummy.asInstanceOf[Long])
-      }
+      leafIdentifiers.foreach(NativeRoot.delete_dummy(_))
     }
 
     // casts are fast and guaranteed by the above (as long as nobody gets access to our private (closed-over) rowBuilder
+    def getId(index: Int) = leafIdentifiers(index)
     def getRow(row: Long) {
       if (NativeRoot.ttreeGetRow(ttree, row) == 0)
         throw new Exception

@@ -34,6 +34,7 @@ package freehep {
 
     private val nameToIndex = rowBuilder.nameTypes.map(_._1).zipWithIndex.toMap
     private val nameToType = rowBuilder.nameTypes.toMap
+    private val leafIdentifiers = Array.fill(rowBuilder.nameTypes.size)(null.asInstanceOf[TLeaf])
 
     private val leaves = ttree.getLeaves
     leaves.getLowerBound until leaves.getUpperBound foreach {i =>
@@ -43,7 +44,7 @@ package freehep {
       nameToIndex.get(tleafName) match {
         case Some(index) =>
           // put the TLeaf reference in the array for RootTTreeRowBuilder to look up
-          rowBuilder.leafIdentifiers(index) = tleaf
+          leafIdentifiers(index) = tleaf.asInstanceOf[TLeaf]
 
           // test casting to make sure that we'll be able to do it at runtime
           (nameToType(tleafName), tleaf) match {
@@ -61,11 +62,12 @@ package freehep {
         case None =>
       }
     }
-    val missing = rowBuilder.leafIdentifiers.zipWithIndex collect {case (null, i) => rowBuilder.nameTypes(i)._1}
+    val missing = leafIdentifiers.zipWithIndex collect {case (null, i) => rowBuilder.nameTypes(i)._1}
     if (!missing.isEmpty)
         throw new FreeHepException(s"""The TTree named "$ttreeLocation" in file "$rootFileLocation" has no leaves corresponding to the following fields: ${missing.map("\"" + _ + "\"").mkString(" ")}.""")
 
     // casts are fast and guaranteed by the above (as long as nobody gets access to our private (closed-over) rowBuilder
+    def getId(index: Int) = leafIdentifiers(index)
     def getRow(row: Long) { }    // ignored; this interface passes the row to TLeaf
     def getValueLeafB(leaf: TLeaf, row: Long): Byte = leaf.asInstanceOf[TLeafB].getValue(row)
     def getValueLeafS(leaf: TLeaf, row: Long): Short = leaf.asInstanceOf[TLeafS].getValue(row)
@@ -74,6 +76,9 @@ package freehep {
     def getValueLeafF(leaf: TLeaf, row: Long): Float = leaf.asInstanceOf[TLeafF].getValue(row)
     def getValueLeafD(leaf: TLeaf, row: Long): Double = leaf.asInstanceOf[TLeafD].getValue(row)
     def getValueLeafC(leaf: TLeaf, row: Long): String = leaf.asInstanceOf[TLeafC].getValue(row)
+
+    def isOpen = true
+    def close() { }
   }
   object FreeHepRootTTreeReader {
     def apply[CASE : RootTTreeRowBuilder](rootFileLocation: String, ttreeLocation: String) =

@@ -19,6 +19,41 @@ package object freehep {
       rootFileReader.getKey(i).getName
     }
   }
+
+  def rootTTreeLeaves(rootFileLocation: String, ttreeLocation: String): Seq[(String, FieldType)] = {
+    val rootFileReader = try {
+      new RootFileReader(rootFileLocation)
+    }
+    catch {
+      case err: java.io.FileNotFoundException => throw new FreeHepException(s"""No file named "$rootFileLocation".""", Some(err))
+      case err: java.io.IOException => throw new FreeHepException(s"""The file named "$rootFileLocation" is not a ROOT file.""", Some(err))
+    }
+
+    val ttree = try {
+      rootFileReader.get(ttreeLocation).asInstanceOf[TTree]
+    }
+    catch {
+      case err: java.lang.ClassCastException => throw new FreeHepException(s"""The object named "$ttreeLocation" in file "$rootFileLocation" is not a TTree.""", Some(err))
+      case err: java.lang.RuntimeException => throw new FreeHepException(s"""No object named "$ttreeLocation" in file "$rootFileLocation".""", Some(err))
+      case err: java.io.IOException => throw new FreeHepException(s"""An error occurred when trying to read "$ttreeLocation" from file "$rootFileLocation" (see "Cause:" in the stack trace for details).""", Some(err))
+    }
+
+    val leaves = ttree.getLeaves
+    leaves.getLowerBound until leaves.getUpperBound map {i =>
+      val tleaf = leaves.getElementAt(i)
+      val tleafName = tleaf.asInstanceOf[TNamed].getName
+      val tleafFieldType = tleaf match {
+        case _: TLeafB => FieldType.Byte
+        case _: TLeafS => FieldType.Short
+        case _: TLeafI => FieldType.Int
+        case _: TLeafL => FieldType.Long
+        case _: TLeafF => FieldType.Float
+        case _: TLeafD => FieldType.Double
+        case _: TLeafC => FieldType.String
+      }
+      tleafName -> tleafFieldType
+    }
+  }
 }
 
 package freehep {

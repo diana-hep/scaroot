@@ -67,6 +67,8 @@ class DefaultSuite extends FlatSpec with Matchers {
 
   "FreeHepRootTTreeReader" should "access data in case class form" in {
     freehep.rootFileListing("src/test/resources/verysimple.root") should be (Seq("ntuple"))
+    freehep.rootTTreeLeaves("src/test/resources/verysimple.root", "ntuple") should be (Seq("x" -> FieldType.Float, "y" -> FieldType.Float, "z" -> FieldType.Float))
+
     case class VerySimple(x: Float, y: Float, z: Float)
     val verysimple = FreeHepRootTTreeReader[VerySimple]("src/test/resources/verysimple.root", "ntuple")
     verysimple.size should be (5)
@@ -88,6 +90,8 @@ class DefaultSuite extends FlatSpec with Matchers {
     verysimple2.close()
 
     freehep.rootFileListing("src/test/resources/simple.root") should be (Seq("tree"))
+    freehep.rootTTreeLeaves("src/test/resources/simple.root", "tree") should be (Seq("one" -> FieldType.Int, "two" -> FieldType.Float, "three" -> FieldType.String))
+
     case class Simple(one: Int, two: Float, three: String)
     val simple = FreeHepRootTTreeReader[Simple]("src/test/resources/simple.root", "tree")
     simple.size should be (4)
@@ -127,6 +131,8 @@ class DefaultSuite extends FlatSpec with Matchers {
 
   "NativeRootTTreeReader" should "access data in case class form" in {
     native.rootFileListing("src/test/resources/verysimple.root") should be (Seq("ntuple"))
+    native.rootTTreeLeaves("src/test/resources/verysimple.root", "ntuple") should be (Seq("x" -> FieldType.Float, "y" -> FieldType.Float, "z" -> FieldType.Float))
+
     case class VerySimple(x: Float, y: Float, z: Float)
     val verysimple = NativeRootTTreeReader[VerySimple]("src/test/resources/verysimple.root", "ntuple")
     verysimple.size should be (5)
@@ -152,6 +158,8 @@ class DefaultSuite extends FlatSpec with Matchers {
     verysimple2.isOpen should be (false)
 
     native.rootFileListing("src/test/resources/simple.root") should be (Seq("tree"))
+    native.rootTTreeLeaves("src/test/resources/simple.root", "tree") should be (Seq("one" -> FieldType.Int, "two" -> FieldType.Float, "three" -> FieldType.String))
+
     case class Simple(one: Int, two: Float, three: String)
     val simple = NativeRootTTreeReader[Simple]("src/test/resources/simple.root", "tree")
     simple.size should be (4)

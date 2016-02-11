@@ -27,6 +27,46 @@ package object native {
     NativeRoot.delete_TFile(tfile)
     out
   }
+
+  def rootTTreeLeaves(rootFileLocation: String, ttreeLocation: String): Seq[(String, FieldType)] = {
+    val tfile = NativeRoot.new_TFile(rootFileLocation)
+    if (NativeRoot.tfileIsOpen(tfile) == 0) {
+      NativeRoot.delete_TFile(tfile)
+      throw new NativeRootException(s"""No file named "$rootFileLocation".""", None)
+    }
+    if (NativeRoot.tfileIsZombie(tfile) != 0) {
+      NativeRoot.close_TFile(tfile)
+      NativeRoot.delete_TFile(tfile)
+      throw new NativeRootException(s"""The file named "$rootFileLocation" is not a ROOT file.""", None)
+    }
+
+    val ttree = NativeRoot.getTTree(tfile, ttreeLocation)
+    if (ttree == 0L) {
+      NativeRoot.close_TFile(tfile)
+      NativeRoot.delete_TFile(tfile)
+      throw new NativeRootException(s"""An error occurred when trying to read "$ttreeLocation" from file "$rootFileLocation".""", None)
+    }
+
+    val out = 0L until NativeRoot.ttreeGetNumLeaves(ttree) map {i =>
+      val tleaf = NativeRoot.ttreeGetLeaf(ttree, i)
+      val tleafName = NativeRoot.ttreeGetLeafName(tleaf)
+      val tleafType = NativeRoot.ttreeGetLeafType(tleaf)
+      val tleafFieldType = tleafType match {
+        case "Int8_t"   => FieldType.Byte
+        case "Int16_t"  => FieldType.Short
+        case "Int_t"    => FieldType.Int
+        case "Int64_t"  => FieldType.Long
+        case "Float_t"  => FieldType.Float
+        case "Double_t" => FieldType.Double
+        case "Char_t"   => FieldType.String
+      }
+      tleafName -> tleafFieldType
+    }
+
+    NativeRoot.close_TFile(tfile)
+    NativeRoot.delete_TFile(tfile)
+    out
+  }
 }
 
 package native {

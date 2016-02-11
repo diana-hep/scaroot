@@ -3,6 +3,31 @@ package org.dianahep.scaroot
 import scala.language.experimental.macros 
 import scala.reflect.macros.blackbox.Context
 
+package object api {
+  def scalaCodeClass(name: String, fields: Seq[(String, FieldType)], caseClass: Boolean = true): String = {
+    // all Unicode letters (with marks), currency symbols, and underscores
+    def wrap(x: String) =
+      if (x.matches("""((\p{L}\p{M}*)|[0-9]|\p{Sc}|_)+""")) x else "`" + x + "`"
+
+    def scalaType(x: FieldType) = x match {
+      case FieldType.Byte => "Byte"
+      case FieldType.Short => "Short"
+      case FieldType.Int => "Int"
+      case FieldType.Long => "Long"
+      case FieldType.Float => "Float"
+      case FieldType.Double => "Double"
+      case FieldType.String => "String"
+    }
+
+    val header = (if (caseClass) "case class " else "class ") + wrap(name) + "("
+    val indent = " " * header.size
+
+    val body = fields map {case (n, t) => wrap(n) + ": " + scalaType(t)} mkString(",\n" + indent)
+
+    header + body + ")"
+  }
+}
+
 package api {
   class RootApiException(message: String, cause: Option[Throwable] = None) extends RuntimeException(message, cause.getOrElse(null))
 

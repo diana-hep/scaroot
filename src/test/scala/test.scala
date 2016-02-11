@@ -128,7 +128,15 @@ class DefaultSuite extends FlatSpec with Matchers {
     // TODO: get an example of the following that you can embed in src/test/resources
     // a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[Simple]("/opt/root/test/Event.root", "ProcessID0") }
     // a [FreeHepException] should be thrownBy { FreeHepRootTTreeReader[Simple]("/opt/root/test/Event.root", "hstat") }
-
+    // TODO: examples with TTrees nested in directories (made by CMSSW)
+    // freehep.leavesInTTree("/home/pivarski/fun/rio/TrackResonanceNtuple.root", "TrackResonanceNtuple/twoTrack") should be (Vector("mass_pipi" -> FieldType.Float, "mass_Ppi" -> FieldType.Float, "mass_piP" -> FieldType.Float, "mass_KK" -> FieldType.Float, "mass_Kpi" -> FieldType.Float, "mass_piK" -> FieldType.Float, "px" -> FieldType.Float, "py" -> FieldType.Float, "pz" -> FieldType.Float, "vx" -> FieldType.Float, "vy" -> FieldType.Float, "vz" -> FieldType.Float, "vertexProb" -> FieldType.Float))
+    // freehep.leavesInTTree("/home/pivarski/fun/rio/TrackResonanceNtuple.root", "TrackResonanceNtuple/twoMuon") should be (Vector("mass_mumu" -> FieldType.Float, "px" -> FieldType.Float, "py" -> FieldType.Float, "pz" -> FieldType.Float))
+    // case class TwoMuon(mass_mumu: Float, px: Float, py: Float, pz: Float) {
+    //   def momentum = Math.sqrt(px*px + py*py + pz*pz)
+    //   def energy = mass_mumu*mass_mumu + px*px + py*py + pz*pz
+    // }
+    // for (twoMuon <- FreeHepRootTTreeIterator[TwoMuon]("/home/pivarski/fun/rio/TrackResonanceNtuple.root", "TrackResonanceNtuple/twoMuon"))
+    //   println(twoMuon, twoMuon.momentum, twoMuon.energy)
   }
 
   "NativeRootTTreeReader" should "access data in case class form" in {

@@ -36,6 +36,18 @@ package object freehep {
     search(rootFileReader)
   }
 
+  def getPath(dir: TDirectory, path: String): RootObject = {
+    def search(d: TDirectory, p: List[String]): RootObject = p match {
+      case Nil => throw new FreeHepException(s"""Cannot resolve empty path "$path".""", None)
+      case top :: Nil => d.getKey(top).getObject
+      case top :: rest => d.getKey(top).getObject match {
+        case subdir: TDirectory => search(subdir, rest)
+        case _ => throw new FreeHepException(s"""Path element in "$path" ("$top") is not a TDirectory.""", None)
+      }
+    }
+    search(dir, path.split("/").filter(!_.isEmpty).toList)
+  }
+
   def leavesInTTree(rootFileLocation: String, ttreeLocation: String): Seq[(String, FieldType)] = {
     val rootFileReader = try {
       new RootFileReader(rootFileLocation)
@@ -46,7 +58,7 @@ package object freehep {
     }
 
     val ttree = try {
-      rootFileReader.get(ttreeLocation).asInstanceOf[TTree]
+      getPath(rootFileReader, ttreeLocation).asInstanceOf[TTree]
     }
     catch {
       case err: java.lang.ClassCastException => throw new FreeHepException(s"""The object named "$ttreeLocation" in file "$rootFileLocation" is not a TTree.""", Some(err))
@@ -89,7 +101,7 @@ package freehep {
     }
 
     val ttree = try {
-      rootFileReader.get(ttreeLocation).asInstanceOf[TTree]
+      getPath(rootFileReader, ttreeLocation).asInstanceOf[TTree]
     }
     catch {
       case err: java.lang.ClassCastException => throw new FreeHepException(s"""The object named "$ttreeLocation" in file "$rootFileLocation" is not a TTree.""", Some(err))

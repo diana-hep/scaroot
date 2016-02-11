@@ -36,7 +36,7 @@ package object freehep {
     search(rootFileReader)
   }
 
-  def getPath(dir: TDirectory, path: String): RootObject = {
+  private[freehep] def getPath(dir: TDirectory, path: String): RootObject = {
     def search(d: TDirectory, p: List[String]): RootObject = p match {
       case Nil => throw new FreeHepException(s"""Cannot resolve empty path "$path".""", None)
       case top :: Nil => d.getKey(top).getObject

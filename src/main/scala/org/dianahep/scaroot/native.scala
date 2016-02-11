@@ -31,6 +31,29 @@ package object native {
     search(tfile)
   }
 
+  private[native] def indexOfName(dir: Pointer, name: String): Option[Long] = {
+    0L until NativeRoot.tdirNumKeys(dir) find {i =>
+      NativeRoot.tdirKeyName(dir, i) == name
+    }
+  }
+
+  private[native] def getPath(dir: Pointer, path: String): Pointer = {
+    def search(d: Pointer, p: List[String]): Pointer = p match {
+      case Nil => throw new NativeRootException(s"""Cannot resolve empty path "$path".""", None)
+      case top :: Nil => NativeRoot.getTTree(d, top)
+      case top :: rest => indexOfName(d, top) match {
+        case Some(index) if (NativeRoot.tdirKeyIsTDirectory(d, index) != 0) =>
+          val subdir = NativeRoot.tdirKeyGet(d, index)
+          search(subdir, rest)
+        case Some(index) =>
+          throw new NativeRootException(s"""Path element in "$path" ("$top") is not a TDirectory.""", None)
+        case None =>
+          throw new NativeRootException(s"""Cannot find "$top" in "$path".""", None)
+      }
+    }
+    search(dir, path.split("/").filter(!_.isEmpty).toList)
+  }
+
   def leavesInTTree(rootFileLocation: String, ttreeLocation: String): Seq[(String, FieldType)] = {
     import Pointer._
 
@@ -40,7 +63,7 @@ package object native {
     if (NativeRoot.tfileIsZombie(tfile) != 0)
       throw new NativeRootException(s"""The file named "$rootFileLocation" is not a ROOT file.""", None)
 
-    val ttree: Pointer = NativeRoot.getTTree(tfile, ttreeLocation)
+    val ttree: Pointer = getPath(tfile, ttreeLocation)
     if (ttree == nullptr)
       throw new NativeRootException(s"""An error occurred when trying to read "$ttreeLocation" from file "$rootFileLocation".""", None)
 
@@ -79,8 +102,7 @@ package native {
     @native def tdirKeyIsTTree(tdir: Long, index: Long): Byte
     @native def tdirKeyIsTDirectory(tdir: Long, index: Long): Byte
     @native def tdirKeyGet(tdir: Long, index: Long): Long
-
-    @native def getTTree(tfile: Long, ttreeLocation: String): Long
+    @native def getTTree(tdir: Long, ttreeLocation: String): Long
 
     @native def ttreeGetNumEntries(ttree: Long): Long
     @native def ttreeGetNumLeaves(ttree: Long): Long
@@ -135,7 +157,7 @@ package native {
       tfile = nullptr
     }
 
-    private var ttree: Pointer = NativeRoot.getTTree(tfile, ttreeLocation)
+    private var ttree: Pointer = getPath(tfile, ttreeLocation)
     if (ttree == nullptr)
       throw new NativeRootException(s"""An error occurred when trying to read "$ttreeLocation" from file "$rootFileLocation".""", None)
 

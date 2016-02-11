@@ -84,6 +84,7 @@ package api {
       }.unzip
 
       c.Expr[RootTTreeRowBuilder[CASE]](q"""
+        import org.dianahep.scaroot.api._
         new RootTTreeRowBuilder[$caseType] {
           def build[ID](rootTTree: RootTTreeReader[$caseType, ID], row: Long): $caseType = {
             rootTTree.setupToGetRow(row)

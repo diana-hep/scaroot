@@ -176,8 +176,14 @@ package freehep {
     def getValueLeafD(leaf: TLeaf, row: Long): Double = leaf.asInstanceOf[TLeafD].getValue(row)
     def getValueLeafC(leaf: TLeaf, row: Long): String = leaf.asInstanceOf[TLeafC].getValue(row)
 
-    def released = false
-    def release() { }
+    private var released_ = false
+    def released = released_
+    def release() {
+      if (!released) {
+        rootFileReader.close()
+        released_ = true
+      }
+    }
   }
   object FreeHepRootTTreeReader {
     def apply[CASE : RootTTreeRowBuilder](rootFileLocation: String, ttreeLocation: String, url: Boolean = false) =

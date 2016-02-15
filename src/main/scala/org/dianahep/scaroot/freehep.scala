@@ -89,16 +89,33 @@ package freehep {
 
   class FreeHepRootTTreeReader[CASE](val rootFileLocation: String,
                                      val ttreeLocation: String,
-                                     rowBuilder: RootTTreeRowBuilder[CASE]) extends
+                                     rowBuilder: RootTTreeRowBuilder[CASE],
+                                     url: Boolean = false) extends
                           RootTTreeReader[CASE, TLeaf](rowBuilder: RootTTreeRowBuilder[CASE]) {
 
-    val rootFileReader = try {
-      new RootFileReader(rootFileLocation)
-    }
-    catch {
-      case err: java.io.FileNotFoundException => throw new FreeHepException(s"""No file named "$rootFileLocation".""", Some(err))
-      case err: java.io.IOException => throw new FreeHepException(s"""The file named "$rootFileLocation" is not a ROOT file.""", Some(err))
-    }
+    val rootFileReader =
+      try {
+        if (url)
+          try {
+            new RootFileReader(new java.net.URL(rootFileLocation))
+          }
+          catch {
+            case err: java.net.MalformedURLException =>
+              throw new FreeHepException(s"""No object returned from URL "$rootFileLocation".""", Some(err))
+          }
+        else
+          try {
+            new RootFileReader(rootFileLocation)
+          }
+          catch {
+            case err: java.io.FileNotFoundException =>
+              throw new FreeHepException(s"""No file named "$rootFileLocation" (pass url = true to interpret location as a URL).""", Some(err))
+          }
+      }
+      catch {
+        case err: java.io.IOException =>
+          throw new FreeHepException(s"""The file named "$rootFileLocation" is not a ROOT file.""", Some(err))
+      }
 
     val ttree = try {
       getPath(rootFileReader, ttreeLocation).asInstanceOf[TTree]
@@ -163,15 +180,15 @@ package freehep {
     def release() { }
   }
   object FreeHepRootTTreeReader {
-    def apply[CASE : RootTTreeRowBuilder](rootFileLocation: String, ttreeLocation: String) =
-      new FreeHepRootTTreeReader[CASE](rootFileLocation, ttreeLocation, implicitly[RootTTreeRowBuilder[CASE]])
+    def apply[CASE : RootTTreeRowBuilder](rootFileLocation: String, ttreeLocation: String, url: Boolean = false) =
+      new FreeHepRootTTreeReader[CASE](rootFileLocation, ttreeLocation, implicitly[RootTTreeRowBuilder[CASE]], url)
   }
 
   class FreeHepRootTTreeIterator[CASE](val rootTTreeReader: RootTTreeReader[CASE, TLeaf]) extends RootTTreeIterator[CASE, TLeaf]
   object FreeHepRootTTreeIterator {
     def apply[CASE](rootTTreeReader: FreeHepRootTTreeReader[CASE]) =
       new FreeHepRootTTreeIterator[CASE](rootTTreeReader)
-    def apply[CASE : RootTTreeRowBuilder](rootFileLocation: String, ttreeLocation: String) =
-      new FreeHepRootTTreeIterator[CASE](new FreeHepRootTTreeReader[CASE](rootFileLocation, ttreeLocation, implicitly[RootTTreeRowBuilder[CASE]]))
+    def apply[CASE : RootTTreeRowBuilder](rootFileLocation: String, ttreeLocation: String, url: Boolean = false) =
+      new FreeHepRootTTreeIterator[CASE](new FreeHepRootTTreeReader[CASE](rootFileLocation, ttreeLocation, implicitly[RootTTreeRowBuilder[CASE]], url))
   }
 }

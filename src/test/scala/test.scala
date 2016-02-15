@@ -139,76 +139,76 @@ class DefaultSuite extends FlatSpec with Matchers {
     //   println(twoMuon, twoMuon.momentum, twoMuon.energy)
   }
 
-  "NativeRootTTreeReader" should "access data in case class form" in {
-    native.ttreesInFile("src/test/resources/verysimple.root") should be (Seq("ntuple"))
-    native.leavesInTTree("src/test/resources/verysimple.root", "ntuple") should be (Seq("x" -> FieldType.Float, "y" -> FieldType.Float, "z" -> FieldType.Float))
+  // "NativeRootTTreeReader" should "access data in case class form" in {
+  //   native.ttreesInFile("src/test/resources/verysimple.root") should be (Seq("ntuple"))
+  //   native.leavesInTTree("src/test/resources/verysimple.root", "ntuple") should be (Seq("x" -> FieldType.Float, "y" -> FieldType.Float, "z" -> FieldType.Float))
 
-    case class VerySimple(x: Float, y: Float, z: Float)
-    val verysimple = NativeRootTTreeReader[VerySimple]("src/test/resources/verysimple.root", "ntuple")
-    verysimple.size should be (5)
-    verysimple.get(0) should be (VerySimple(1.0F, 2.0F, 3.0F))
-    verysimple.get(1) should be (VerySimple(4.0F, 5.0F, 6.0F))
-    verysimple.get(2) should be (VerySimple(7.0F, 8.0F, 9.0F))
-    verysimple.get(3) should be (VerySimple(10.0F, 11.0F, 12.0F))
-    verysimple.get(4) should be (VerySimple(1.0F, 2.0F, 3.0F))
-    verysimple.released should be (false)
-    verysimple.release()
-    verysimple.released should be (true)
+  //   case class VerySimple(x: Float, y: Float, z: Float)
+  //   val verysimple = NativeRootTTreeReader[VerySimple]("src/test/resources/verysimple.root", "ntuple")
+  //   verysimple.size should be (5)
+  //   verysimple.get(0) should be (VerySimple(1.0F, 2.0F, 3.0F))
+  //   verysimple.get(1) should be (VerySimple(4.0F, 5.0F, 6.0F))
+  //   verysimple.get(2) should be (VerySimple(7.0F, 8.0F, 9.0F))
+  //   verysimple.get(3) should be (VerySimple(10.0F, 11.0F, 12.0F))
+  //   verysimple.get(4) should be (VerySimple(1.0F, 2.0F, 3.0F))
+  //   verysimple.released should be (false)
+  //   verysimple.release()
+  //   verysimple.released should be (true)
 
-    NativeRootTTreeIterator[VerySimple]("src/test/resources/verysimple.root", "ntuple").toList should be (List(VerySimple(1.0F, 2.0F, 3.0F), VerySimple(4.0F, 5.0F, 6.0F), VerySimple(7.0F, 8.0F, 9.0F), VerySimple(10.0F, 11.0F, 12.0F), VerySimple(1.0F, 2.0F, 3.0F)))
+  //   NativeRootTTreeIterator[VerySimple]("src/test/resources/verysimple.root", "ntuple").toList should be (List(VerySimple(1.0F, 2.0F, 3.0F), VerySimple(4.0F, 5.0F, 6.0F), VerySimple(7.0F, 8.0F, 9.0F), VerySimple(10.0F, 11.0F, 12.0F), VerySimple(1.0F, 2.0F, 3.0F)))
 
-    case class VerySimple2(y: Float, x: Float)
-    val verysimple2 = NativeRootTTreeReader[VerySimple2]("src/test/resources/verysimple.root", "ntuple")
-    verysimple2.size should be (5)
-    verysimple2.get(0) should be (VerySimple2(2.0F, 1.0F))
-    verysimple2.get(1) should be (VerySimple2(5.0F, 4.0F))
-    verysimple2.get(2) should be (VerySimple2(8.0F, 7.0F))
-    verysimple2.get(3) should be (VerySimple2(11.0F, 10.0F))
-    verysimple2.get(4) should be (VerySimple2(2.0F, 1.0F))
-    verysimple2.released should be (false)
-    verysimple2.release()
-    verysimple2.released should be (true)
+  //   case class VerySimple2(y: Float, x: Float)
+  //   val verysimple2 = NativeRootTTreeReader[VerySimple2]("src/test/resources/verysimple.root", "ntuple")
+  //   verysimple2.size should be (5)
+  //   verysimple2.get(0) should be (VerySimple2(2.0F, 1.0F))
+  //   verysimple2.get(1) should be (VerySimple2(5.0F, 4.0F))
+  //   verysimple2.get(2) should be (VerySimple2(8.0F, 7.0F))
+  //   verysimple2.get(3) should be (VerySimple2(11.0F, 10.0F))
+  //   verysimple2.get(4) should be (VerySimple2(2.0F, 1.0F))
+  //   verysimple2.released should be (false)
+  //   verysimple2.release()
+  //   verysimple2.released should be (true)
 
-    native.ttreesInFile("src/test/resources/simple.root") should be (Seq("tree"))
-    native.leavesInTTree("src/test/resources/simple.root", "tree") should be (Seq("one" -> FieldType.Int, "two" -> FieldType.Float, "three" -> FieldType.String))
+  //   native.ttreesInFile("src/test/resources/simple.root") should be (Seq("tree"))
+  //   native.leavesInTTree("src/test/resources/simple.root", "tree") should be (Seq("one" -> FieldType.Int, "two" -> FieldType.Float, "three" -> FieldType.String))
 
-    case class Simple(one: Int, two: Float, three: String)
-    val simple = NativeRootTTreeReader[Simple]("src/test/resources/simple.root", "tree")
-    simple.size should be (4)
-    simple.get(0) should be (Simple(1, 1.1F, "uno"))
-    simple.get(1) should be (Simple(2, 2.2F, "dos"))
-    simple.get(2) should be (Simple(3, 3.3F, "tres"))
-    simple.get(3) should be (Simple(4, 4.4F, "quatro"))
-    simple.released should be (false)
-    simple.release()
-    simple.released should be (true)
+  //   case class Simple(one: Int, two: Float, three: String)
+  //   val simple = NativeRootTTreeReader[Simple]("src/test/resources/simple.root", "tree")
+  //   simple.size should be (4)
+  //   simple.get(0) should be (Simple(1, 1.1F, "uno"))
+  //   simple.get(1) should be (Simple(2, 2.2F, "dos"))
+  //   simple.get(2) should be (Simple(3, 3.3F, "tres"))
+  //   simple.get(3) should be (Simple(4, 4.4F, "quatro"))
+  //   simple.released should be (false)
+  //   simple.release()
+  //   simple.released should be (true)
 
-    case class Simple2(three: String, one: Int)
-    val simple2 = NativeRootTTreeReader[Simple2]("src/test/resources/simple.root", "tree")
-    simple2.size should be (4)
-    simple2.get(0) should be (Simple2("uno", 1))
-    simple2.get(1) should be (Simple2("dos", 2))
-    simple2.get(2) should be (Simple2("tres", 3))
-    simple2.get(3) should be (Simple2("quatro", 4))
-    simple2.released should be (false)
-    simple2.release()
-    simple2.released should be (true)
+  //   case class Simple2(three: String, one: Int)
+  //   val simple2 = NativeRootTTreeReader[Simple2]("src/test/resources/simple.root", "tree")
+  //   simple2.size should be (4)
+  //   simple2.get(0) should be (Simple2("uno", 1))
+  //   simple2.get(1) should be (Simple2("dos", 2))
+  //   simple2.get(2) should be (Simple2("tres", 3))
+  //   simple2.get(3) should be (Simple2("quatro", 4))
+  //   simple2.released should be (false)
+  //   simple2.release()
+  //   simple2.released should be (true)
 
-    case class BrokenSimple(one: Int, two: Float, three: String, four: Double)
-    a [NativeRootException] should be thrownBy { NativeRootTTreeReader[BrokenSimple]("src/test/resources/simple.root", "tree") }
+  //   case class BrokenSimple(one: Int, two: Float, three: String, four: Double)
+  //   a [NativeRootException] should be thrownBy { NativeRootTTreeReader[BrokenSimple]("src/test/resources/simple.root", "tree") }
 
-    case class BrokenSimple2(one: Int, two: Double, three: String)
-    a [NativeRootException] should be thrownBy { NativeRootTTreeReader[BrokenSimple2]("src/test/resources/simple.root", "tree") }
+  //   case class BrokenSimple2(one: Int, two: Double, three: String)
+  //   a [NativeRootException] should be thrownBy { NativeRootTTreeReader[BrokenSimple2]("src/test/resources/simple.root", "tree") }
 
-    a [NativeRootException] should be thrownBy { native.ttreesInFile("src/test/resources/simpleton.root") }
-    a [NativeRootException] should be thrownBy { native.ttreesInFile("src/test/resources/makeSimple.C") }
+  //   a [NativeRootException] should be thrownBy { native.ttreesInFile("src/test/resources/simpleton.root") }
+  //   a [NativeRootException] should be thrownBy { native.ttreesInFile("src/test/resources/makeSimple.C") }
 
-    a [NativeRootException] should be thrownBy { NativeRootTTreeReader[Simple]("src/test/resources/simpleton.root", "tree") }
-    a [NativeRootException] should be thrownBy { NativeRootTTreeReader[Simple]("src/test/resources/makeSimple.C", "tree") }
-    a [NativeRootException] should be thrownBy { NativeRootTTreeReader[Simple]("src/test/resources/simple.root", "treety") }
+  //   a [NativeRootException] should be thrownBy { NativeRootTTreeReader[Simple]("src/test/resources/simpleton.root", "tree") }
+  //   a [NativeRootException] should be thrownBy { NativeRootTTreeReader[Simple]("src/test/resources/makeSimple.C", "tree") }
+  //   a [NativeRootException] should be thrownBy { NativeRootTTreeReader[Simple]("src/test/resources/simple.root", "treety") }
 
-    // // TODO: get an example of the following that you can embed in src/test/resources
-    // a [NativeRootException] should be thrownBy { NativeRootTTreeReader[Simple]("/opt/root/test/Event.root", "ProcessID0") }
-    // a [NativeRootException] should be thrownBy { NativeRootTTreeReader[Simple]("/opt/root/test/Event.root", "hstat") }
-  }
+  //   // // TODO: get an example of the following that you can embed in src/test/resources
+  //   // a [NativeRootException] should be thrownBy { NativeRootTTreeReader[Simple]("/opt/root/test/Event.root", "ProcessID0") }
+  //   // a [NativeRootException] should be thrownBy { NativeRootTTreeReader[Simple]("/opt/root/test/Event.root", "hstat") }
+  // }
 }

@@ -32,23 +32,21 @@ package hadoop {
 
     override def getSplits(job: JobContext): java.util.List[InputSplit] =
       super.getSplits(job)  // does the right thing; this is here as a reminder that it's overridable
-
   }
+
   object RootInputFormat {
-    def somemacro[CASE](ttreeLocation: CASE): String = macro compileRootInputFormatImpl[CASE]
+    def apply[CASE](ttreeLocation: String): RootInputFormat[CASE] = macro applyImpl[CASE]
 
-    def compileRootInputFormatImpl[CASE : c.WeakTypeTag](c: Context)(ttreeLocation: c.Expr[CASE]): c.Expr[CASE] = {
+    def applyImpl[CASE : c.WeakTypeTag](c: Context)(ttreeLocation: c.Expr[String]): c.Expr[RootInputFormat[CASE]] = {
       import c.universe._
-      // val caseType = weakTypeOf[CASE]
+      val caseType = weakTypeOf[CASE]
 
-      // c.Expr[RootInputFormat[CASE]](q"""
-      //   import org.dianahep.scaroot.hadoop._
-      //   new RootInputFormat[$caseType] {
-      //     val ttreeLocation = "TrackResonanceNtuple/twoMuon"
-      //   }
-      // """)
-
-
+      c.Expr[RootInputFormat[CASE]](q"""
+        import org.dianahep.scaroot.hadoop._
+        new RootInputFormat[$caseType] {
+          val ttreeLocation = $ttreeLocation
+        }
+      """)
     }
   }
 

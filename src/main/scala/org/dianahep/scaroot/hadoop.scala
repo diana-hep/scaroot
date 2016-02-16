@@ -17,6 +17,7 @@ import org.apache.hadoop.mapreduce.JobContext
 import org.apache.hadoop.mapreduce.JobStatus
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.hadoop.mapreduce.lib.input.FileSplit
+import org.apache.hadoop.mapreduce.Mapper
 import org.apache.hadoop.mapreduce.RecordReader
 import org.apache.hadoop.mapreduce.TaskAttemptContext
 
@@ -25,33 +26,7 @@ import org.dianahep.scaroot.native.NativeRootTTreeReader
 import org.dianahep.scaroot.api.RootTTreeRowBuilder
 
 package hadoop {  
-  class KeyWritable(i: Long, j: Long) extends Writable {
-    var splitIndex_ = i
-    var ttreeEntry_ = j
-    def splitIndex: Long = splitIndex_
-    def ttreeEntry: Long = ttreeEntry_
-
-    def this() { this(-1L, -1L) }
-
-    def readFields(in: java.io.DataInput) {
-      splitIndex_ = in.readLong()
-      ttreeEntry_ = in.readLong()
-    }
-    def write(out: java.io.DataOutput) {
-      out.writeLong(splitIndex)
-      out.writeLong(ttreeEntry)
-    }
-
-    override def toString() = "KeyWritable(" + splitIndex.toString + ", " + ttreeEntry.toString + ")"
-  }
-  object KeyWritable {
-    def apply(splitIndex: Long, ttreeEntry: Long) = new KeyWritable(splitIndex: Long, ttreeEntry: Long)
-    def unapplySeq(x: KeyWritable) =
-      if (x.splitIndex < 0L  ||  x.ttreeEntry < 0L)
-        None
-      else
-        Some(List(x.splitIndex, x.ttreeEntry))
-  }
+  case class KeyWritable(ttreeEntry: Long) extends LongWritable(ttreeEntry)
 
   trait ValueSerializer[CASE] {
     def read(in: java.io.DataInput): CASE
@@ -133,8 +108,8 @@ package hadoop {
         Some(x.get)
   }
 
-  abstract class RootInputFormat[CASE : RootTTreeRowBuilder : ValueSerializer, WRITABLE <: ValueWritable[CASE] : ClassTag](ttreeLocation: String) extends FileInputFormat[LongWritable, WRITABLE] {
-    override def createRecordReader(split: InputSplit, context: TaskAttemptContext): RecordReader[LongWritable, WRITABLE] =
+  abstract class RootInputFormat[CASE : RootTTreeRowBuilder : ValueSerializer, WRITABLE <: ValueWritable[CASE] : ClassTag](ttreeLocation: String) extends FileInputFormat[KeyWritable, WRITABLE] {
+    override def createRecordReader(split: InputSplit, context: TaskAttemptContext): RecordReader[KeyWritable, WRITABLE] =
       new RootRecordReader
 
     override def isSplitable(context: JobContext, file: Path): Boolean = false
@@ -142,10 +117,10 @@ package hadoop {
     override def getSplits(job: JobContext): java.util.List[InputSplit] =
       super.getSplits(job)  // does the right thing; this is here as a reminder that it's overridable
 
-    class RootRecordReader extends RecordReader[LongWritable, WRITABLE] {
+    class RootRecordReader extends RecordReader[KeyWritable, WRITABLE] {
       private var reader: FreeHepRootTTreeReader[CASE] = null
       private var row = -1L
-      private var key = null.asInstanceOf[LongWritable]
+      private var key = null.asInstanceOf[KeyWritable]
       private var value = null.asInstanceOf[WRITABLE]
       private val valueConstructor = classTag[WRITABLE].runtimeClass.getConstructor()
       valueConstructor.setAccessible(true)
@@ -168,7 +143,7 @@ package hadoop {
       override def nextKeyValue(): Boolean = {
         row += 1L
         if (row < reader.size) {
-          key = new LongWritable(row)
+          key = KeyWritable(row)
           value = valueConstructor.newInstance().asInstanceOf[WRITABLE]
           value.put(reader.get(row))
           true
@@ -184,22 +159,4 @@ package hadoop {
       }
     }
   }
-
-  // object RootInputFormat {
-  //   def apply[CASE](ttreeLocation: String): RootInputFormat[CASE] = macro applyImpl[CASE]
-
-  //   def applyImpl[CASE : c.WeakTypeTag](c: Context)(ttreeLocation: c.Expr[String]): c.Expr[RootInputFormat[CASE]] = {
-  //     import c.universe._
-  //     val caseType = weakTypeOf[CASE]
-
-  //     c.Expr[RootInputFormat[CASE]](q"""
-  //       import org.dianahep.scaroot.hadoop._
-  //       new RootInputFormat[$caseType] {
-  //         val ttreeLocation = $ttreeLocation
-  //       }
-  //     """)
-  //   }
-  // }
-
-
 }

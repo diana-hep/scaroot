@@ -1,7 +1,8 @@
 package org.dianahep.scaroot
 
 import scala.language.experimental.macros 
-import scala.reflect.macros.blackbox.Context
+// import scala.reflect.macros.blackbox.Context
+import scala.reflect.macros.Context
 
 package object api {
   def scalaCodeClass(name: String, fields: Seq[(String, FieldType)], caseClass: Boolean = true): String = {

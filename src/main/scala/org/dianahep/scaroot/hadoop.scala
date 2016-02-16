@@ -3,7 +3,8 @@ package org.dianahep.scaroot
 import scala.collection.JavaConversions._
 import scala.language.experimental.macros 
 import scala.reflect._
-import scala.reflect.macros.blackbox.Context
+// import scala.reflect.macros.blackbox.Context
+import scala.reflect.macros.Context
 
 import org.apache.hadoop.fs.FileStatus
 import org.apache.hadoop.fs.FileSystem

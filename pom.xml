@@ -13,8 +13,10 @@
   <properties>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
-    <scala.tools.version>2.11</scala.tools.version>
-    <scala.version>2.11.7</scala.version>
+    <!-- <scala.tools.version>2.11</scala.tools.version> -->
+    <!-- <scala.version>2.11.7</scala.version> -->
+    <scala.tools.version>2.10</scala.tools.version>
+    <scala.version>2.10.5</scala.version>
     <encoding>UTF-8</encoding>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -67,7 +69,7 @@
 
     <dependency>
       <groupId>org.scalatest</groupId>
-      <artifactId>scalatest_2.11</artifactId>
+      <artifactId>scalatest_${scala.tools.version}</artifactId>
       <version>2.2.6</version>
       <scope>test</scope>
     </dependency>

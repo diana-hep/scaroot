@@ -40,13 +40,17 @@ package hadoop {
       import c.universe._
       val caseType = weakTypeOf[CASE]
 
-      val fields = caseType.decls.collectFirst {
+      // val fields = caseType.decls.collectFirst {
+      //   case m: MethodSymbol if (m.isPrimaryConstructor) => m
+      // }.get.paramLists.head
+      val fields = caseType.declarations.collectFirst {
         case m: MethodSymbol if (m.isPrimaryConstructor) => m
-      }.get.paramLists.head
+      }.get.paramss.head
 
       val (readParams, writeStatements) = fields.map {field =>
         val fieldName = field.asTerm.name
-        val NullaryMethodType(fieldType) = caseType.decl(fieldName).typeSignature
+        // val NullaryMethodType(fieldType) = caseType.decl(fieldName).typeSignature
+        val NullaryMethodType(fieldType) = caseType.declaration(fieldName).typeSignature
 
         if (fieldType =:= typeOf[Boolean])
           (q"in.readBoolean()", q"out.writeBoolean(obj.$fieldName)")

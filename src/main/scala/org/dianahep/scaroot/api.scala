@@ -54,14 +54,20 @@ package api {
       import c.universe._
       val caseType = weakTypeOf[CASE]
 
-      val fields = caseType.decls.collectFirst {
+      // val fields = caseType.decls.collectFirst {
+      //   case m: MethodSymbol if (m.isPrimaryConstructor) => m
+      // }.get.paramLists.head
+      val fields = caseType.declarations.collectFirst {
         case m: MethodSymbol if (m.isPrimaryConstructor) => m
-      }.get.paramLists.head
+      }.get.paramss.head
 
       val (buildParams, nameTypes) = fields.zipWithIndex.map {case (field, index) =>
         val name = field.asTerm.name
         val leafName = name.decodedName.toString
-        val NullaryMethodType(leafType) = caseType.decl(name).typeSignature
+        // val NullaryMethodType(leafType) = caseType.decl(name).typeSignature
+        val NullaryMethodType(leafType) = caseType.declaration(name).typeSignature
+
+        // use c.parse; compare to result of tb.parse on Scala 2.10 REPL and quasiquote on Scala 2.11 REPL
 
         val (leafMethod, t) =
           if (leafType =:= typeOf[Byte])

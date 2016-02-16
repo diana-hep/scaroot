@@ -25,12 +25,11 @@ import org.dianahep.scaroot.api.RootTTreeRowBuilder
 
 package hadoop {  
   trait HadoopWritable[CASE] extends Writable {
-    private var wrapped = null.asInstanceOf[CASE]
     def isEmpty: Boolean
     def get: CASE
-    def put(x: CASE) {
-      wrapped = x
-    }
+    def put(x: CASE): Unit
+    def readFields(in: java.io.DataInput)
+    def write(out: java.io.DataOutput)
   }
 
   object HadoopWritable {
@@ -38,7 +37,7 @@ package hadoop {
       if (x.isEmpty)
         None
       else
-        Some(x.wrapped)
+        Some(x.get)
 
     implicit def empty[CASE]: HadoopWritable[CASE] = macro emptyImpl[CASE]
 
@@ -79,10 +78,14 @@ package hadoop {
       c.Expr[HadoopWritable[CASE]](q"""
         import org.dianahep.scaroot.hadoop._
         new HadoopWritable[$caseType] {
+          private var wrapped = null.asInstanceOf[$caseType]
           def isEmpty = (wrapped == null)
           def get =
             if (isEmpty) throw new java.util.NoSuchElementException("HadoopWritable does not contain any data.")
             else wrapped
+          def put(x: $caseType) {
+            wrapped = x
+          }
           def readFields(in: java.io.DataInput) { new $caseType(..$readParams) }
           def write(out: java.io.DataOutput) { ..$writeStatements }
         }

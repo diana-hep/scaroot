@@ -25,6 +25,34 @@ import org.dianahep.scaroot.native.NativeRootTTreeReader
 import org.dianahep.scaroot.api.RootTTreeRowBuilder
 
 package hadoop {  
+  class KeyWritable(i: Long, j: Long) extends Writable {
+    var splitIndex_ = i
+    var ttreeEntry_ = j
+    def splitIndex: Long = splitIndex_
+    def ttreeEntry: Long = ttreeEntry_
+
+    def this() { this(-1L, -1L) }
+
+    def readFields(in: java.io.DataInput) {
+      splitIndex_ = in.readLong()
+      ttreeEntry_ = in.readLong()
+    }
+    def write(out: java.io.DataOutput) {
+      out.writeLong(splitIndex)
+      out.writeLong(ttreeEntry)
+    }
+
+    override def toString() = "KeyWritable(" + splitIndex.toString + ", " + ttreeEntry.toString + ")"
+  }
+  object KeyWritable {
+    def apply(splitIndex: Long, ttreeEntry: Long) = new KeyWritable(splitIndex: Long, ttreeEntry: Long)
+    def unapplySeq(x: KeyWritable) =
+      if (x.splitIndex < 0L  ||  x.ttreeEntry < 0L)
+        None
+      else
+        Some(List(x.splitIndex, x.ttreeEntry))
+  }
+
   trait ValueSerializer[CASE] {
     def read(in: java.io.DataInput): CASE
     def write(out: java.io.DataOutput, obj: CASE)

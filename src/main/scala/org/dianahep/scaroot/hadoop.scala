@@ -24,24 +24,14 @@ import org.dianahep.scaroot.native.NativeRootTTreeReader
 import org.dianahep.scaroot.api.RootTTreeRowBuilder
 
 package hadoop {  
-  trait HadoopWritable[CASE] extends Writable {
-    def isEmpty: Boolean
-    def get: CASE
-    def put(x: CASE): Unit
-    def readFields(in: java.io.DataInput)
-    def write(out: java.io.DataOutput)
+  trait HadoopSerializer[CASE] {
+    def read(in: java.io.DataInput): CASE
+    def write(out: java.io.DataOutput, obj: CASE)
   }
+  object HadoopSerializer {
+    implicit def compileHadoopSerializer[CASE]: HadoopSerializer[CASE] = macro compileHadoopSerializerImpl[CASE]
 
-  object HadoopWritable {
-    def unapply[CASE](x: HadoopWritable[CASE]): Option[CASE] =
-      if (x.isEmpty)
-        None
-      else
-        Some(x.get)
-
-    implicit def empty[CASE]: HadoopWritable[CASE] = macro emptyImpl[CASE]
-
-    def emptyImpl[CASE : c.WeakTypeTag](c: Context): c.Expr[HadoopWritable[CASE]] = {
+    def compileHadoopSerializerImpl[CASE : c.WeakTypeTag](c: Context): c.Expr[HadoopSerializer[CASE]] = {
       import c.universe._
       val caseType = weakTypeOf[CASE]
 
@@ -54,46 +44,83 @@ package hadoop {
         val NullaryMethodType(fieldType) = caseType.decl(fieldName).typeSignature
 
         if (fieldType =:= typeOf[Boolean])
-          (q"in.readBoolean()", q"out.writeBoolean(wrapped.$fieldName)")
+          (q"in.readBoolean()", q"out.writeBoolean(obj.$fieldName)")
         else if (fieldType =:= typeOf[Byte])
-          (q"in.readByte()", q"out.writeByte(wrapped.$fieldName)")
+          (q"in.readByte()", q"out.writeByte(obj.$fieldName)")
         else if (fieldType =:= typeOf[Char])
-          (q"in.readChar()", q"out.writeChar(wrapped.$fieldName)")
+          (q"in.readChar()", q"out.writeChar(obj.$fieldName)")
         else if (fieldType =:= typeOf[Double])
-          (q"in.readDouble()", q"out.writeDouble(wrapped.$fieldName)")
+          (q"in.readDouble()", q"out.writeDouble(obj.$fieldName)")
         else if (fieldType =:= typeOf[Float])
-          (q"in.readFloat()", q"out.writeFloat(wrapped.$fieldName)")
+          (q"in.readFloat()", q"out.writeFloat(obj.$fieldName)")
         else if (fieldType =:= typeOf[Int])
-          (q"in.readInt()", q"out.writeInt(wrapped.$fieldName)")
+          (q"in.readInt()", q"out.writeInt(obj.$fieldName)")
         else if (fieldType =:= typeOf[Long])
-          (q"in.readLong()", q"out.writeLong(wrapped.$fieldName)")
+          (q"in.readLong()", q"out.writeLong(obj.$fieldName)")
         else if (fieldType =:= typeOf[Short])
-          (q"in.readShort()", q"out.writeShort(wrapped.$fieldName)")
+          (q"in.readShort()", q"out.writeShort(obj.$fieldName)")
         else if (fieldType =:= typeOf[String])
-          (q"in.readUTF()", q"out.writeUTF(wrapped.$fieldName)")
+          (q"in.readUTF()", q"out.writeUTF(obj.$fieldName)")
         else
           throw new NotImplementedError(s"no handler for type $fieldType")
       }.unzip
 
-      c.Expr[HadoopWritable[CASE]](q"""
+      c.Expr[HadoopSerializer[CASE]](q"""
         import org.dianahep.scaroot.hadoop._
-        new HadoopWritable[$caseType] {
-          private var wrapped = null.asInstanceOf[$caseType]
-          def isEmpty = (wrapped == null)
-          def get =
-            if (isEmpty) throw new java.util.NoSuchElementException("HadoopWritable does not contain any data.")
-            else wrapped
-          def put(x: $caseType) {
-            wrapped = x
-          }
-          def readFields(in: java.io.DataInput) { new $caseType(..$readParams) }
-          def write(out: java.io.DataOutput) { ..$writeStatements }
+        new HadoopSerializer[$caseType] {
+          def read(in: java.io.DataInput) = new $caseType(..$readParams)
+          def write(out: java.io.DataOutput, obj: $caseType) { ..$writeStatements }
         }
       """)
     }
   }
 
-  abstract class RootInputFormat[CASE : RootTTreeRowBuilder : HadoopWritable](ttreeLocation: String) extends FileInputFormat[LongWritable, HadoopWritable[CASE]] {
+  class HadoopWritable[CASE](serializer: HadoopSerializer[CASE]) extends Writable {
+    private var wrapped = null.asInstanceOf[CASE]
+    
+    def this() {
+      this(HadoopSerializer.compileHadoopSerializer[CASE])
+    }
+
+    def isEmpty = (wrapped == null)
+    def get =
+      if (isEmpty) throw new java.util.NoSuchElementException("HadoopWritable does not contain any data (instantiated but not deserialized).")
+      else wrapped
+    def put(x: CASE) {
+      wrapped = x
+    }
+    def readFields(in: java.io.DataInput) {
+      wrapped = serializer.read(in)
+    }
+    def write(out: java.io.DataOutput) {
+      serializer.write(out, get)
+    }
+    override def toString() =
+      if (isEmpty)
+        "HadoopWritable()"
+      else
+        "HadoopWritable(" + get.toString + ")"
+  }
+
+  object HadoopWritable {
+    def empty[CASE : HadoopSerializer] = new HadoopWritable[CASE](serializer)
+
+    def apply[CASE : HadoopSerializer](x: CASE) = {
+      val out = new HadoopWritable[CASE](serializer)
+      out.put(x)
+      out
+    }
+
+    def unapply[CASE](x: HadoopWritable[CASE]): Option[CASE] =
+      if (x.isEmpty)
+        None
+      else
+        Some(x.get)
+
+    def serializer[CASE : HadoopSerializer] = implicitly[HadoopSerializer[CASE]]
+  }
+
+  abstract class RootInputFormat[CASE : RootTTreeRowBuilder : HadoopSerializer](ttreeLocation: String) extends FileInputFormat[LongWritable, HadoopWritable[CASE]] {
     override def createRecordReader(split: InputSplit, context: TaskAttemptContext): RecordReader[LongWritable, HadoopWritable[CASE]] =
       new RootRecordReader
 
@@ -105,8 +132,8 @@ package hadoop {
     class RootRecordReader extends RecordReader[LongWritable, HadoopWritable[CASE]] {
       private var reader: FreeHepRootTTreeReader[CASE] = null
       private var row = -1L
-      private var key: LongWritable = null
-      private var value: HadoopWritable[CASE] = implicitly[HadoopWritable[CASE]]
+      private var key = null.asInstanceOf[LongWritable]
+      private var value = null.asInstanceOf[HadoopWritable[CASE]]
 
       override def initialize(split: InputSplit, context: TaskAttemptContext) = split match {
         case fileSplit: FileSplit =>
@@ -127,7 +154,7 @@ package hadoop {
         row += 1L
         if (row < reader.size) {
           key = new LongWritable(row)
-          value.put(reader.get(row))
+          value = HadoopWritable[CASE](reader.get(row))
           true
         }
         else

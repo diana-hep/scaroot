@@ -186,7 +186,8 @@ package freehep {
     }
   }
   object FreeHepRootTTreeReader {
-    def apply[CASE : RootTTreeRowBuilder](rootFileLocation: String, ttreeLocation: String, url: Boolean = false) =
+    // def apply[CASE : RootTTreeRowBuilder](rootFileLocation: String, ttreeLocation: String, url: Boolean = false) =
+    def apply[CASE](rootFileLocation: String, ttreeLocation: String, url: Boolean = false)(implicit e: RootTTreeRowBuilder[CASE]) =
       new FreeHepRootTTreeReader[CASE](rootFileLocation, ttreeLocation, implicitly[RootTTreeRowBuilder[CASE]], url)
   }
 

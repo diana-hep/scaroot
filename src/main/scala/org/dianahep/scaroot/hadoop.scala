@@ -52,72 +52,40 @@ package hadoop {
 
       val (readParams, writeStatements) = fields.map {field =>
         val fieldName = field.asTerm.name
+        // val fieldNameToUse = fieldName
+        val fieldNameToUse = newTermName(field.asTerm.name.decodedName.toString)
         // val NullaryMethodType(fieldType) = caseType.decl(fieldName).typeSignature
         val NullaryMethodType(fieldType) = caseType.declaration(fieldName).typeSignature
 
-        // if (fieldType =:= typeOf[Boolean])
-        //   (q"in.readBoolean()", q"out.writeBoolean(obj.$fieldName)")
-        // else if (fieldType =:= typeOf[Byte])
-        //   (q"in.readByte()", q"out.writeByte(obj.$fieldName)")
-        // else if (fieldType =:= typeOf[Char])
-        //   (q"in.readChar()", q"out.writeChar(obj.$fieldName)")
-        // else if (fieldType =:= typeOf[Double])
-        //   (q"in.readDouble()", q"out.writeDouble(obj.$fieldName)")
-        // else if (fieldType =:= typeOf[Float])
-        //   (q"in.readFloat()", q"out.writeFloat(obj.$fieldName)")
-        // else if (fieldType =:= typeOf[Int])
-        //   (q"in.readInt()", q"out.writeInt(obj.$fieldName)")
-        // else if (fieldType =:= typeOf[Long])
-        //   (q"in.readLong()", q"out.writeLong(obj.$fieldName)")
-        // else if (fieldType =:= typeOf[Short])
-        //   (q"in.readShort()", q"out.writeShort(obj.$fieldName)")
-        // else if (fieldType =:= typeOf[String])
-        //   (q"in.readUTF()", q"out.writeUTF(obj.$fieldName)")
-        // else
-        //   throw new NotImplementedError(s"no handler for type $fieldType")
-
         if (fieldType =:= typeOf[Boolean])
-          (Apply(Select(Ident(newTermName("in")), newTermName("readBoolean")), List()),
-            Apply(Select(Ident(newTermName("out")), newTermName("writeBoolean")), List(Select(Ident(newTermName("obj")), fieldName))))
+          (q"in.readBoolean()", q"out.writeBoolean(obj.$fieldNameToUse)")
         else if (fieldType =:= typeOf[Byte])
-          (Apply(Select(Ident(newTermName("in")), newTermName("readByte")), List()),
-            Apply(Select(Ident(newTermName("out")), newTermName("writeByte")), List(Select(Ident(newTermName("obj")), fieldName))))
+          (q"in.readByte()", q"out.writeByte(obj.$fieldNameToUse)")
         else if (fieldType =:= typeOf[Char])
-          (Apply(Select(Ident(newTermName("in")), newTermName("readChar")), List()),
-            Apply(Select(Ident(newTermName("out")), newTermName("writeChar")), List(Select(Ident(newTermName("obj")), fieldName))))
+          (q"in.readChar()", q"out.writeChar(obj.$fieldNameToUse)")
         else if (fieldType =:= typeOf[Double])
-          (Apply(Select(Ident(newTermName("in")), newTermName("readDouble")), List()),
-            Apply(Select(Ident(newTermName("out")), newTermName("writeDouble")), List(Select(Ident(newTermName("obj")), fieldName))))
+          (q"in.readDouble()", q"out.writeDouble(obj.$fieldNameToUse)")
         else if (fieldType =:= typeOf[Float])
-          (Apply(Select(Ident(newTermName("in")), newTermName("readFloat")), List()),
-            Apply(Select(Ident(newTermName("out")), newTermName("writeFloat")), List(Select(Ident(newTermName("obj")), fieldName))))
+          (q"in.readFloat()", q"out.writeFloat(obj.$fieldNameToUse)")
         else if (fieldType =:= typeOf[Int])
-          (Apply(Select(Ident(newTermName("in")), newTermName("readInt")), List()),
-            Apply(Select(Ident(newTermName("out")), newTermName("writeInt")), List(Select(Ident(newTermName("obj")), fieldName))))
+          (q"in.readInt()", q"out.writeInt(obj.$fieldNameToUse)")
         else if (fieldType =:= typeOf[Long])
-          (Apply(Select(Ident(newTermName("in")), newTermName("readLong")), List()),
-            Apply(Select(Ident(newTermName("out")), newTermName("writeLong")), List(Select(Ident(newTermName("obj")), fieldName))))
+          (q"in.readLong()", q"out.writeLong(obj.$fieldNameToUse)")
         else if (fieldType =:= typeOf[Short])
-          (Apply(Select(Ident(newTermName("in")), newTermName("readShort")), List()),
-            Apply(Select(Ident(newTermName("out")), newTermName("writeShort")), List(Select(Ident(newTermName("obj")), fieldName))))
+          (q"in.readShort()", q"out.writeShort(obj.$fieldNameToUse)")
         else if (fieldType =:= typeOf[String])
-          (Apply(Select(Ident(newTermName("in")), newTermName("readUTF")), List()),
-            Apply(Select(Ident(newTermName("out")), newTermName("writeUTF")), List(Select(Ident(newTermName("obj")), fieldName))))
+          (q"in.readUTF()", q"out.writeUTF(obj.$fieldNameToUse)")
         else
           throw new NotImplementedError(s"no handler for type $fieldType")
-
       }.unzip
 
-      // c.Expr[ValueSerializer[CASE]](q"""
-      //   import org.dianahep.scaroot.hadoop._
-      //   new ValueSerializer[$caseType] {
-      //     def read(in: java.io.DataInput) = new $caseType(..$readParams)
-      //     def write(out: java.io.DataOutput, obj: $caseType) { ..$writeStatements }
-      //   }
-      // """)
-      import Flag.FINAL
-      import Flag.PARAM
-      c.Expr[ValueSerializer[CASE]](Block(List(Import(Select(Select(Select(Ident(newTermName("org")), newTermName("dianahep")), newTermName("scaroot")), newTermName("hadoop")), List(ImportSelector(nme.WILDCARD, 44, null, -1)))), Block(List(ClassDef(Modifiers(FINAL), newTypeName("$anon"), List(), Template(List(AppliedTypeTree(Ident(newTypeName("ValueSerializer")), List(Ident(newTypeName("caseType"))))), emptyValDef, List(DefDef(Modifiers(), nme.CONSTRUCTOR, List(), List(List()), TypeTree(), Block(List(Apply(Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR), List())), Literal(Constant(())))), DefDef(Modifiers(), newTermName("read"), List(), List(List(ValDef(Modifiers(PARAM), newTermName("in"), Select(Select(Ident(newTermName("java")), newTermName("io")), newTypeName("DataInput")), EmptyTree))), TypeTree(), Apply(Select(New(Ident(newTypeName("caseType"))), nme.CONSTRUCTOR), List(Ident(newTermName("readParams"))))), DefDef(Modifiers(), newTermName("write"), List(), List(List(ValDef(Modifiers(PARAM), newTermName("out"), Select(Select(Ident(newTermName("java")), newTermName("io")), newTypeName("DataOutput")), EmptyTree), ValDef(Modifiers(PARAM), newTermName("obj"), Ident(newTypeName("caseType")), EmptyTree))), Select(Ident(newTermName("scala")), newTypeName("Unit")), Ident(newTermName("writeStatements"))))))), Apply(Select(New(Ident(newTypeName("$anon"))), nme.CONSTRUCTOR), List()))))
+      c.Expr[ValueSerializer[CASE]](q"""
+        import org.dianahep.scaroot.hadoop._
+        new ValueSerializer[$caseType] {
+          def read(in: java.io.DataInput) = new $caseType(..$readParams)
+          def write(out: java.io.DataOutput, obj: $caseType) { ..$writeStatements }
+        }
+      """)
     }
   }
 

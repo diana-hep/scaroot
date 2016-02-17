@@ -138,21 +138,20 @@ package hadoop {
       override def initialize(split: InputSplit, context: TaskAttemptContext) = split match {
         case fileSplit: FileSplit =>
           val job = context.getConfiguration
+          val path = fileSplit.getPath
           val fileSystem = FileSystem.get(job)
           val localFileSystem = FileSystem.getLocal(job)
 
-          println(s"fileSystem $fileSystem")
-          println(s"localFileSystem $localFileSystem")
-          println(s"fileSplit.getPath ${fileSplit.getPath}")
-          println(s"fileSplit.getPath.getFileSystem(job) ${fileSplit.getPath.getFileSystem(job)} isFileSystem ${fileSplit.getPath.getFileSystem(job) == fileSystem} isLocalFileSystem ${fileSplit.getPath.getFileSystem(job) == localFileSystem}")
-          println(s"localFileSystem.getWorkingDirectory ${localFileSystem.getWorkingDirectory}")
+          val file =
+            if (path.getFileSystem(job) == localFileSystem)
+              localFileSystem.pathToFile(path)
+            else {
+              // Copy file from HDFS to local file system (verified temporary for successful and unsuccessful jobs).
+              // This feels wrong, but I don't see a way around it.
+              fileSystem.copyToLocalFile(false, path, localFileSystem.getWorkingDirectory)
+              localFileSystem.pathToFile(new Path(localFileSystem.getWorkingDirectory, path.getName))
+            }
 
-          // Copy file from HDFS to local file system (verified temporary for successful and unsuccessful jobs).
-          // This feels wrong, but I don't see a way around it.
-          val name = fileSplit.getPath.getName
-          fileSystem.copyToLocalFile(false, fileSplit.getPath, localFileSystem.getWorkingDirectory)
-
-          val file = localFileSystem.pathToFile(new Path(localFileSystem.getWorkingDirectory, name))
           reader = new FreeHepRootTTreeReader[CASE](file.getAbsolutePath, ttreeLocation, implicitly[RootTTreeRowBuilder[CASE]])
       }
 

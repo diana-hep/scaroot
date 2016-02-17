@@ -53,26 +53,27 @@
       <version>2.7-SNAPSHOT</version>
     </dependency>
 
-    <!-- <dependency> -->
-    <!--   <groupId>org.apache.hadoop</groupId> -->
-    <!--   <artifactId>hadoop-core</artifactId> -->
-    <!--   <version>1.2.1</version> -->
-    <!--   <scope>provided</scope> -->
-    <!-- </dependency> -->
-
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <version>2.6.0-cdh5.5.1</version>
-      <scope>provided</scope>
-    </dependency>
-
+    <!-- Works with Hadoop 2.7.1-amzn-0 on Amazon Linux AMI release 2015.09 and Spark 1.6.0 -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
-      <version>2.6.0-mr1-cdh5.5.1</version>
+      <version>1.2.1</version>
       <scope>provided</scope>
     </dependency>
+
+    <!-- <dependency> -->
+    <!--   <groupId>org.apache.hadoop</groupId> -->
+    <!--   <artifactId>hadoop-common</artifactId> -->
+    <!--   <version>2.6.0-cdh5.5.1</version> -->
+    <!--   <scope>provided</scope> -->
+    <!-- </dependency> -->
+
+    <!-- <dependency> -->
+    <!--   <groupId>org.apache.hadoop</groupId> -->
+    <!--   <artifactId>hadoop-core</artifactId> -->
+    <!--   <version>2.6.0-mr1-cdh5.5.1</version> -->
+    <!--   <scope>provided</scope> -->
+    <!-- </dependency> -->
 
     <dependency>
       <groupId>org.scalatest</groupId>

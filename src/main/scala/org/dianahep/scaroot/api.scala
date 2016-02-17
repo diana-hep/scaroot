@@ -49,6 +49,10 @@ package api {
   }
   object RootTTreeRowBuilder {
     implicit def compileRootTTreeRowBuilder[CASE]: RootTTreeRowBuilder[CASE] = macro compileRootTTreeRowBuilderImpl[CASE]
+    
+    // Commented-out parts are for Scala 2.11, replacements are for Scala 2.10.
+    // Some names changed (declaration -> decl, declarations -> decls, paramss -> paramLists)
+    // and quasiquotes are not available. This makes the final definition at the end horrendous.
 
     def compileRootTTreeRowBuilderImpl[CASE : c.WeakTypeTag](c: Context): c.Expr[RootTTreeRowBuilder[CASE]] = {
       import c.universe._
@@ -69,37 +73,70 @@ package api {
 
         // use c.parse; compare to result of tb.parse on Scala 2.10 REPL and quasiquote on Scala 2.11 REPL
 
+        // val (leafMethod, t) =
+        //   if (leafType =:= typeOf[Byte])
+        //     (q"rootTTree.getValueLeafB", q"FieldType.Byte")
+        //   else if (leafType =:= typeOf[Short])
+        //     (q"rootTTree.getValueLeafS", q"FieldType.Short")
+        //   else if (leafType =:= typeOf[Int])
+        //     (q"rootTTree.getValueLeafI", q"FieldType.Int")
+        //   else if (leafType =:= typeOf[Long])
+        //     (q"rootTTree.getValueLeafL", q"FieldType.Long")
+        //   else if (leafType =:= typeOf[Float])
+        //     (q"rootTTree.getValueLeafF", q"FieldType.Float")
+        //   else if (leafType =:= typeOf[Double])
+        //     (q"rootTTree.getValueLeafD", q"FieldType.Double")
+        //   else if (leafType =:= typeOf[String])
+        //     (q"rootTTree.getValueLeafC", q"FieldType.String")
+        //   else
+        //     throw new NotImplementedError(s"no handler for type $leafType")
         val (leafMethod, t) =
           if (leafType =:= typeOf[Byte])
-            (q"rootTTree.getValueLeafB", q"FieldType.Byte")
+            (Select(Ident(newTermName("rootTTree")), newTermName("getValueLeafB")),
+              Select(Ident(newTermName("FieldType")), newTermName("Byte")))
           else if (leafType =:= typeOf[Short])
-            (q"rootTTree.getValueLeafS", q"FieldType.Short")
+            (Select(Ident(newTermName("rootTTree")), newTermName("getValueLeafS")),
+              Select(Ident(newTermName("FieldType")), newTermName("Short")))
           else if (leafType =:= typeOf[Int])
-            (q"rootTTree.getValueLeafI", q"FieldType.Int")
+            (Select(Ident(newTermName("rootTTree")), newTermName("getValueLeafI")),
+              Select(Ident(newTermName("FieldType")), newTermName("Int")))
           else if (leafType =:= typeOf[Long])
-            (q"rootTTree.getValueLeafL", q"FieldType.Long")
+            (Select(Ident(newTermName("rootTTree")), newTermName("getValueLeafL")),
+              Select(Ident(newTermName("FieldType")), newTermName("Long")))
           else if (leafType =:= typeOf[Float])
-            (q"rootTTree.getValueLeafF", q"FieldType.Float")
+            (Select(Ident(newTermName("rootTTree")), newTermName("getValueLeafF")),
+              Select(Ident(newTermName("FieldType")), newTermName("Float")))
           else if (leafType =:= typeOf[Double])
-            (q"rootTTree.getValueLeafD", q"FieldType.Double")
+            (Select(Ident(newTermName("rootTTree")), newTermName("getValueLeafD")),
+              Select(Ident(newTermName("FieldType")), newTermName("Double")))
           else if (leafType =:= typeOf[String])
-            (q"rootTTree.getValueLeafC", q"FieldType.String")
+            (Select(Ident(newTermName("rootTTree")), newTermName("getValueLeafC")),
+              Select(Ident(newTermName("FieldType")), newTermName("String")))
           else
             throw new NotImplementedError(s"no handler for type $leafType")
 
-        (q"$leafMethod(rootTTree.getId($index), row)", q"$leafName -> $t")
+        val bp = Apply(leafMethod, List(Apply(Select(Ident(newTermName("rootTTree")), newTermName("getId")),
+          List(Literal(Constant(index)))), Ident(newTermName("row"))))
+
+        val nt = Apply(Select(Ident(newTermName(leafName)), newTermName("$minus$greater")), List(t))
+
+        (bp, nt)
+
       }.unzip
 
-      c.Expr[RootTTreeRowBuilder[CASE]](q"""
-        import org.dianahep.scaroot.api._
-        new RootTTreeRowBuilder[$caseType] {
-          def build[ID](rootTTree: RootTTreeReader[$caseType, ID], row: Long): $caseType = {
-            rootTTree.setupToGetRow(row)
-            new $caseType(..$buildParams)
-          }
-          val nameTypes = Vector(..$nameTypes)
-        }
-      """)
+      // c.Expr[RootTTreeRowBuilder[CASE]](q"""
+      //   import org.dianahep.scaroot.api._
+      //   new RootTTreeRowBuilder[$caseType] {
+      //     def build[ID](rootTTree: RootTTreeReader[$caseType, ID], row: Long): $caseType = {
+      //       rootTTree.setupToGetRow(row)
+      //       new $caseType(..$buildParams)
+      //     }
+      //     val nameTypes = Vector(..$nameTypes)
+      //   }
+      // """)
+      import Flag.FINAL
+      import Flag.PARAM
+      c.Expr[RootTTreeRowBuilder[CASE]](Block(List(Import(Select(Select(Select(Ident(newTermName("org")), newTermName("dianahep")), newTermName("scaroot")), newTermName("api")), List(ImportSelector(nme.WILDCARD, 40, null, -1)))), Block(List(ClassDef(Modifiers(FINAL), newTypeName("$anon"), List(), Template(List(AppliedTypeTree(Ident(newTypeName("RootTTreeRowBuilder")), List(Ident(newTypeName(caseType.toString))))), emptyValDef, List(DefDef(Modifiers(), nme.CONSTRUCTOR, List(), List(List()), TypeTree(), Block(List(Apply(Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR), List())), Literal(Constant(())))), DefDef(Modifiers(), newTermName("build"), List(TypeDef(Modifiers(PARAM), newTypeName("ID"), List(), TypeBoundsTree(EmptyTree, EmptyTree))), List(List(ValDef(Modifiers(PARAM), newTermName("rootTTree"), AppliedTypeTree(Ident(newTypeName("RootTTreeReader")), List(Ident(newTypeName(caseType.toString)), Ident(newTypeName("ID")))), EmptyTree), ValDef(Modifiers(PARAM), newTermName("row"), Ident(newTypeName("Long")), EmptyTree))), Ident(newTypeName(caseType.toString)), Block(List(Apply(Select(Ident(newTermName("rootTTree")), newTermName("setupToGetRow")), List(Ident(newTermName("row"))))), Apply(Select(New(Ident(newTypeName(caseType.toString))), nme.CONSTRUCTOR), buildParams))), ValDef(Modifiers(), newTermName("nameTypes"), TypeTree(), Apply(Ident(newTermName("Vector")), nameTypes)))))), Apply(Select(New(Ident(newTypeName("$anon"))), nme.CONSTRUCTOR), List()))))
     }
   }
 

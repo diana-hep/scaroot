@@ -58,6 +58,8 @@ package api {
       import c.universe._
       val caseType = weakTypeOf[CASE]
 
+      println(caseType)
+
       // val fields = caseType.decls.collectFirst {
       //   case m: MethodSymbol if (m.isPrimaryConstructor) => m
       // }.get.paramLists.head
@@ -90,6 +92,8 @@ package api {
         //     (q"rootTTree.getValueLeafC", q"FieldType.String")
         //   else
         //     throw new NotImplementedError(s"no handler for type $leafType")
+        // (q"$leafMethod(rootTTree.getId($index), row)", q"$leafName -> $t")
+
         val (leafMethod, t) =
           if (leafType =:= typeOf[Byte])
             (Select(Ident(newTermName("rootTTree")), newTermName("getValueLeafB")),
@@ -118,25 +122,44 @@ package api {
         val bp = Apply(leafMethod, List(Apply(Select(Ident(newTermName("rootTTree")), newTermName("getId")),
           List(Literal(Constant(index)))), Ident(newTermName("row"))))
 
-        val nt = Apply(Select(Ident(newTermName(leafName)), newTermName("$minus$greater")), List(t))
+        val nt = Apply(Select(Literal(Constant(leafName)), newTermName("$minus$greater")), List(t))
 
         (bp, nt)
 
       }.unzip
 
-      // c.Expr[RootTTreeRowBuilder[CASE]](q"""
-      //   import org.dianahep.scaroot.api._
-      //   new RootTTreeRowBuilder[$caseType] {
-      //     def build[ID](rootTTree: RootTTreeReader[$caseType, ID], row: Long): $caseType = {
-      //       rootTTree.setupToGetRow(row)
-      //       new $caseType(..$buildParams)
-      //     }
-      //     val nameTypes = Vector(..$nameTypes)
-      //   }
-      // """)
-      import Flag.FINAL
-      import Flag.PARAM
-      c.Expr[RootTTreeRowBuilder[CASE]](Block(List(Import(Select(Select(Select(Ident(newTermName("org")), newTermName("dianahep")), newTermName("scaroot")), newTermName("api")), List(ImportSelector(nme.WILDCARD, 40, null, -1)))), Block(List(ClassDef(Modifiers(FINAL), newTypeName("$anon"), List(), Template(List(AppliedTypeTree(Ident(newTypeName("RootTTreeRowBuilder")), List(Ident(newTypeName(caseType.toString))))), emptyValDef, List(DefDef(Modifiers(), nme.CONSTRUCTOR, List(), List(List()), TypeTree(), Block(List(Apply(Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR), List())), Literal(Constant(())))), DefDef(Modifiers(), newTermName("build"), List(TypeDef(Modifiers(PARAM), newTypeName("ID"), List(), TypeBoundsTree(EmptyTree, EmptyTree))), List(List(ValDef(Modifiers(PARAM), newTermName("rootTTree"), AppliedTypeTree(Ident(newTypeName("RootTTreeReader")), List(Ident(newTypeName(caseType.toString)), Ident(newTypeName("ID")))), EmptyTree), ValDef(Modifiers(PARAM), newTermName("row"), Ident(newTypeName("Long")), EmptyTree))), Ident(newTypeName(caseType.toString)), Block(List(Apply(Select(Ident(newTermName("rootTTree")), newTermName("setupToGetRow")), List(Ident(newTermName("row"))))), Apply(Select(New(Ident(newTypeName(caseType.toString))), nme.CONSTRUCTOR), buildParams))), ValDef(Modifiers(), newTermName("nameTypes"), TypeTree(), Apply(Ident(newTermName("Vector")), nameTypes)))))), Apply(Select(New(Ident(newTypeName("$anon"))), nme.CONSTRUCTOR), List()))))
+      val out1 = c.Expr[RootTTreeRowBuilder[CASE]](q"""
+        import org.dianahep.scaroot.api._
+        new RootTTreeRowBuilder[$caseType] {
+          def build[ID](rootTTree: RootTTreeReader[$caseType, ID], row: Long): $caseType = {
+            rootTTree.setupToGetRow(row)
+            new $caseType(..$buildParams)
+          }
+          val nameTypes = Vector(..$nameTypes)
+        }
+      """)
+
+      // println(showRaw(out))
+      // throw new Exception
+
+      // import Flag.FINAL
+      // import Flag.PARAM
+      // c.Expr[RootTTreeRowBuilder[CASE]](Block(List(Import(Select(Select(Select(Ident(newTermName("org")), newTermName("dianahep")), newTermName("scaroot")), newTermName("api")), List(ImportSelector(nme.WILDCARD, 40, null, -1)))), Block(List(ClassDef(Modifiers(FINAL), newTypeName("$anon"), List(), Template(List(AppliedTypeTree(Ident(newTypeName("RootTTreeRowBuilder")), List(Ident(newTypeName(caseType.toString))))), emptyValDef, List(DefDef(Modifiers(), nme.CONSTRUCTOR, List(), List(List()), TypeTree(), Block(List(Apply(Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR), List())), Literal(Constant(())))), DefDef(Modifiers(), newTermName("build"), List(TypeDef(Modifiers(PARAM), newTypeName("ID"), List(), TypeBoundsTree(EmptyTree, EmptyTree))), List(List(ValDef(Modifiers(PARAM), newTermName("rootTTree"), AppliedTypeTree(Ident(newTypeName("RootTTreeReader")), List(Ident(newTypeName(caseType.toString)), Ident(newTypeName("ID")))), EmptyTree), ValDef(Modifiers(PARAM), newTermName("row"), Ident(newTypeName("Long")), EmptyTree))), Ident(newTypeName(caseType.toString)), Block(List(Apply(Select(Ident(newTermName("rootTTree")), newTermName("setupToGetRow")), List(Ident(newTermName("row"))))), Apply(Select(New(Ident(newTypeName(caseType.toString))), nme.CONSTRUCTOR), buildParams))), ValDef(Modifiers(), newTermName("nameTypes"), TypeTree(), Apply(Ident(newTermName("Vector")), nameTypes)))))), Apply(Select(New(Ident(newTypeName("$anon"))), nme.CONSTRUCTOR), List()))))
+
+      val out2 = reify {
+        new RootTTreeRowBuilder[caseType] {
+          def build[ID](rootTTree: RootTTreeReader[caseType, ID], row: Long): caseType = {
+            rootTTree.setupToGetRow(row)
+            new caseType(buildParams.split)
+          }
+          val nameTypes = Vector(nameTypes.split)
+        }
+      }
+
+      println(out1)
+      println(out2)
+
+      out2
     }
   }
 

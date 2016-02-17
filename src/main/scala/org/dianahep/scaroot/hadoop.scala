@@ -75,6 +75,7 @@ package hadoop {
         //   (q"in.readUTF()", q"out.writeUTF(obj.$fieldName)")
         // else
         //   throw new NotImplementedError(s"no handler for type $fieldType")
+
         if (fieldType =:= typeOf[Boolean])
           (Apply(Select(Ident(newTermName("in")), newTermName("readBoolean")), List()),
             Apply(Select(Ident(newTermName("out")), newTermName("writeBoolean")), List(Select(Ident(newTermName("obj")), fieldName))))

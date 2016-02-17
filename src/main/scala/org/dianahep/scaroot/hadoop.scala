@@ -1,7 +1,7 @@
 package org.dianahep.scaroot
 
 import scala.collection.JavaConversions._
-import scala.language.experimental.macros 
+import scala.language.experimental.macros
 import scala.reflect._
 // import scala.reflect.macros.blackbox.Context
 import scala.reflect.macros.Context

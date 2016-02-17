@@ -141,6 +141,12 @@ package hadoop {
           val fileSystem = FileSystem.get(job)
           val localFileSystem = FileSystem.getLocal(job)
 
+          println(s"fileSystem $fileSystem")
+          println(s"localFileSystem $localFileSystem")
+          println(s"fileSplit.getPath ${fileSplit.getPath}")
+          println(s"fileSplit.getPath.getFileSystem(job) ${fileSplit.getPath.getFileSystem(job)} isFileSystem ${fileSplit.getPath.getFileSystem(job) == fileSystem} isLocalFileSystem ${fileSplit.getPath.getFileSystem(job) == localFileSystem}")
+          println(s"localFileSystem.getWorkingDirectory ${localFileSystem.getWorkingDirectory}")
+
           // Copy file from HDFS to local file system (verified temporary for successful and unsuccessful jobs).
           // This feels wrong, but I don't see a way around it.
           val name = fileSplit.getPath.getName

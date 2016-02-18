@@ -1,3 +1,6 @@
-all: nativeRoot.cpp
-	mkdir -p ../../../src/main/resources/native
-	g++ -fPIC -shared -Wl,--no-as-needed $(shell root-config --cflags --ldflags --libs) -o ../../../src/main/resources/native/nativeRoot.so nativeRoot.cpp
+all: root2avro.cpp
+	mkdir -p ../../../target
+	g++ root2avro.cpp -o ../../../target/root2avro \
+		-Wl,--no-as-needed $(shell root-config --cflags --ldflags --libs) \
+		$(shell pkg-config avro-c --cflags --libs) \
+		$(shell pkg-config jansson --cflags --libs)

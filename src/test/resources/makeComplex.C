@@ -6,7 +6,6 @@
 struct ministruct {
   int one;
   double two;
-  std::string three;
 };
 
 struct structure {
@@ -23,15 +22,14 @@ struct structure {
   char myfixedstr[10];
   char *myfloatstr;
   std::string mystdstr;
-  ministruct mystruct;
+  // ministruct mystruct;
   std::vector<ministruct> mystructs;
 };
 
 void makeComplex() {
   TFile *f = new TFile("complex.root", "RECREATE");
-  TDirectory *dir = new TDirectory("subdir", "");
+  TDirectory *dir = f->mkdir("subdir");
   dir->cd();
-  TTree *tree = new TTree("tree", "");
 
   char mybyte;
   unsigned char myubyte;
@@ -103,17 +101,14 @@ void makeComplex() {
   strcpy(mystruct.myfixedstr, "hello");
   mystruct.myfloatstr = there;
   mystruct.mystdstr = std::string("you");
-  mystruct.mystruct.one = 1;
-  mystruct.mystruct.two = 2.2;
-  mystruct.mystruct.three = std::string("three");
+  // mystruct.mystruct.one = 1;
+  // mystruct.mystruct.two = 2.2;
   ministruct tmp1;
   tmp1.one = 1;
   tmp1.two = 2.2;
-  tmp1.three = std::string("three");
   ministruct tmp2;
   tmp2.one = -1;
   tmp2.two = -2.2;
-  tmp2.three = std::string("minus three");
   mystruct.mystructs = {tmp1, tmp2};
 
   myarraybyte[0] = -3;
@@ -151,9 +146,8 @@ void makeComplex() {
   strcpy(myarraystruct[0].myfixedstr, "hello");
   myarraystruct[0].myfloatstr = there;
   myarraystruct[0].mystdstr = std::string("you");
-  myarraystruct[0].mystruct.one = 1;
-  myarraystruct[0].mystruct.two = 2.2;
-  myarraystruct[0].mystruct.three = std::string("three");
+  // myarraystruct[0].mystruct.one = 1;
+  // myarraystruct[0].mystruct.two = 2.2;
   myarraystruct[0].mystructs = {tmp1, tmp2};
   myarraystruct[1].mybyte = 3;
   myarraystruct[1].myubyte = 3;
@@ -168,9 +162,8 @@ void makeComplex() {
   strcpy(myarraystruct[1].myfixedstr, "hello");
   myarraystruct[1].myfloatstr = there;
   myarraystruct[1].mystdstr = std::string("you");
-  myarraystruct[1].mystruct.one = 1;
-  myarraystruct[1].mystruct.two = 2.2;
-  myarraystruct[1].mystruct.three = std::string("three");
+  // myarraystruct[1].mystruct.one = 1;
+  // myarraystruct[1].mystruct.two = 2.2;
   myarraystruct[1].mystructs = {tmp2, tmp1};
 
   myvectorbyte = {3, -3};
@@ -214,8 +207,8 @@ void makeComplex() {
     mystruct.myfixedstr << " " <<
     mystruct.myfloatstr << " " <<
     mystruct.mystdstr << " " <<
-    "{" << mystruct.mystruct.one << ", " << mystruct.mystruct.two << ", " << mystruct.mystruct.three << "} "
-    "[{" << mystruct.mystructs[0].one << ", " << mystruct.mystructs[0].two << ", " << mystruct.mystructs[0].three << "}, {" << mystruct.mystructs[1].one << ", " << mystruct.mystructs[1].two << ", " << mystruct.mystructs[1].three << "}]" << std::endl;
+    // "{" << mystruct.mystruct.one << ", " << mystruct.mystruct.two << "} "
+    "[{" << mystruct.mystructs[0].one << ", " << mystruct.mystructs[0].two << "}, {" << mystruct.mystructs[1].one << ", " << mystruct.mystructs[1].two << "}]" << std::endl;
 
   std::cout << "myarraybyte: " << (int)myarraybyte[0] << " " << (int)myarraybyte[1] << std::endl;
   std::cout << "myarrayubyte: " << (unsigned int)myarrayubyte[0] << " " << (unsigned int)myarrayubyte[1] << std::endl;
@@ -242,8 +235,8 @@ void makeComplex() {
     myarraystruct[0].myfixedstr << " " <<
     myarraystruct[0].myfloatstr << " " <<
     myarraystruct[0].mystdstr << " " <<
-    "{" << myarraystruct[0].mystruct.one << ", " << myarraystruct[0].mystruct.two << ", " << myarraystruct[0].mystruct.three << "} "
-    "[{" << myarraystruct[0].mystructs[0].one << ", " << myarraystruct[0].mystructs[0].two << ", " << myarraystruct[0].mystructs[0].three << "}, {" << myarraystruct[0].mystructs[1].one << ", " << myarraystruct[0].mystructs[1].two << ", " << myarraystruct[0].mystructs[1].three << "}]" << std::endl;
+    // "{" << myarraystruct[0].mystruct.one << ", " << myarraystruct[0].mystruct.two << "} "
+    "[{" << myarraystruct[0].mystructs[0].one << ", " << myarraystruct[0].mystructs[0].two << "}, {" << myarraystruct[0].mystructs[1].one << ", " << myarraystruct[0].mystructs[1].two << "}]" << std::endl;
   std::cout << "myarraystruct[1]: " <<
     (int)myarraystruct[1].mybyte << " " <<
     (unsigned int)myarraystruct[1].myubyte << " " <<
@@ -258,8 +251,8 @@ void makeComplex() {
     myarraystruct[1].myfixedstr << " " <<
     myarraystruct[1].myfloatstr << " " <<
     myarraystruct[1].mystdstr << " " <<
-    "{" << myarraystruct[1].mystruct.one << ", " << myarraystruct[1].mystruct.two << ", " << myarraystruct[1].mystruct.three << "} "
-    "[{" << myarraystruct[1].mystructs[0].one << ", " << myarraystruct[1].mystructs[0].two << ", " << myarraystruct[1].mystructs[0].three << "}, {" << myarraystruct[1].mystructs[1].one << ", " << myarraystruct[1].mystructs[1].two << ", " << myarraystruct[1].mystructs[1].three << "}]" << std::endl;
+    // "{" << myarraystruct[1].mystruct.one << ", " << myarraystruct[1].mystruct.two << "} "
+    "[{" << myarraystruct[1].mystructs[0].one << ", " << myarraystruct[1].mystructs[0].two << "}, {" << myarraystruct[1].mystructs[1].one << ", " << myarraystruct[1].mystructs[1].two << "}]" << std::endl;
 
   std::cout << "myvectorbyte: " << (int)myvectorbyte[0] << " " << (int)myvectorbyte[1] << std::endl;
   std::cout << "myvectorubyte: " << (unsigned int)myvectorubyte[0] << " " << (unsigned int)myvectorubyte[1] << std::endl;
@@ -286,8 +279,8 @@ void makeComplex() {
     myvectorstruct[0].myfixedstr << " " <<
     myvectorstruct[0].myfloatstr << " " <<
     myvectorstruct[0].mystdstr << " " <<
-    "{" << myvectorstruct[0].mystruct.one << ", " << myvectorstruct[0].mystruct.two << ", " << myvectorstruct[0].mystruct.three << "} "
-    "[{" << myvectorstruct[0].mystructs[0].one << ", " << myvectorstruct[0].mystructs[0].two << ", " << myvectorstruct[0].mystructs[0].three << "}, {" << myvectorstruct[0].mystructs[1].one << ", " << myvectorstruct[0].mystructs[1].two << ", " << myvectorstruct[0].mystructs[1].three << "}]" << std::endl;
+    // "{" << myvectorstruct[0].mystruct.one << ", " << myvectorstruct[0].mystruct.two << "} "
+    "[{" << myvectorstruct[0].mystructs[0].one << ", " << myvectorstruct[0].mystructs[0].two << "}, {" << myvectorstruct[0].mystructs[1].one << ", " << myvectorstruct[0].mystructs[1].two << "}]" << std::endl;
   std::cout << "myvectorstruct[1]: " <<
     (int)myvectorstruct[1].mybyte << " " <<
     (unsigned int)myvectorstruct[1].myubyte << " " <<
@@ -302,9 +295,67 @@ void makeComplex() {
     myvectorstruct[1].myfixedstr << " " <<
     myvectorstruct[1].myfloatstr << " " <<
     myvectorstruct[1].mystdstr << " " <<
-    "{" << myvectorstruct[1].mystruct.one << ", " << myvectorstruct[1].mystruct.two << ", " << myvectorstruct[1].mystruct.three << "} "
-    "[{" << myvectorstruct[1].mystructs[0].one << ", " << myvectorstruct[1].mystructs[0].two << ", " << myvectorstruct[1].mystructs[0].three << "}, {" << myvectorstruct[1].mystructs[1].one << ", " << myvectorstruct[1].mystructs[1].two << ", " << myvectorstruct[1].mystructs[1].three << "}]" << std::endl;
+    // "{" << myvectorstruct[1].mystruct.one << ", " << myvectorstruct[1].mystruct.two << "} "
+    "[{" << myvectorstruct[1].mystructs[0].one << ", " << myvectorstruct[1].mystructs[0].two << "}, {" << myvectorstruct[1].mystructs[1].one << ", " << myvectorstruct[1].mystructs[1].two << "}]" << std::endl;
 
+  TTree *tree0 = new TTree("tree0", "");
+  TTree *tree1 = new TTree("tree1", "");
+  TTree *tree2 = new TTree("tree2", "");
 
+  std::vector<TTree*> trees;
+  trees.push_back(tree0);
+  trees.push_back(tree1);
+  trees.push_back(tree2);
 
+  for (TTree *t : trees) {
+    t->Branch("mybyte", &mybyte);
+    t->Branch("myubyte", &myubyte);
+    t->Branch("myshort", &myshort);
+    t->Branch("myushort", &myushort);
+    t->Branch("myint", &myint);
+    t->Branch("myuint", &myuint);
+    // t->Branch("mylong", &mylong);
+    // t->Branch("myulong", &myulong);
+    t->Branch("myfloat", &myfloat);
+    t->Branch("mydouble", &mydouble);
+    // t->Branch("myfixedstr", &myfixedstr);
+    // t->Branch("myfloatstr", &myfloatstr);
+    t->Branch("mystdstr", &mystdstr);
+    t->Branch("mystruct", &mystruct);
+
+    // t->Branch("myarraybyte", &myarraybyte);
+    // t->Branch("myarrayubyte", &myarrayubyte);
+    // t->Branch("myarrayshort", &myarrayshort);
+    // t->Branch("myarrayushort", &myarrayushort);
+    // t->Branch("myarrayint", &myarrayint);
+    // t->Branch("myarrayuint", &myarrayuint);
+    // t->Branch("myarraylong", &myarraylong);
+    // t->Branch("myarrayulong", &myarrayulong);
+    // t->Branch("myarrayfloat", &myarrayfloat);
+    // t->Branch("myarraydouble", &myarraydouble);
+    // t->Branch("myarraystdstr", &myarraystdstr);
+    // t->Branch("myarraystruct", &myarraystruct);
+
+    t->Branch("myvectorbyte", &myvectorbyte);
+    t->Branch("myvectorubyte", &myvectorubyte);
+    t->Branch("myvectorshort", &myvectorshort);
+    t->Branch("myvectorushort", &myvectorushort);
+    t->Branch("myvectorint", &myvectorint);
+    t->Branch("myvectoruint", &myvectoruint);
+    t->Branch("myvectorlong", &myvectorlong);
+    t->Branch("myvectorulong", &myvectorulong);
+    t->Branch("myvectorfloat", &myvectorfloat);
+    t->Branch("myvectordouble", &myvectordouble);
+    t->Branch("myvectorfloatstr", &myvectorfloatstr);
+    t->Branch("myvectorstdstr", &myvectorstdstr);
+    // t->Branch("myvectorstruct", &myvectorstruct);
+  }
+
+  tree1->Fill();
+
+  tree2->Fill();
+  tree2->Fill();
+
+  f->Write();
+  f->Close();
 }

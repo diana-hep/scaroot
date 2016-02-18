@@ -10,12 +10,11 @@
 
 #include <avro.h>
 
-#include "Event.h"
-
 int main(int argc, char **argv) {
   // std::cout << "BEGIN" << std::endl;
 
-  auto code = std::string("void run() {\n") +
+  auto code = std::string("#include \"Event.h\"\n") +
+    std::string("void run() {\n") +
     std::string("  TFile fileIn(\"/home/pivarski/tmp/freehep_tests/Event.root\");\n") +
     std::string("  TTreeReader theReader(\"T\", &fileIn);\n") +
     std::string("  TTreeReaderValue<Event> eventRV(theReader, \"event\");\n") +

@@ -192,12 +192,27 @@
         </configuration>
       </plugin>
 
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>src/main/resources</directory>
+              <includes>
+                <include>libRootTreeReader.so</include>
+              </includes>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+
     </plugins>
 
     <resources>
       <resource>
         <directory>src/main/resources</directory>
-        <targetPath>resources</targetPath>
+        <targetPath>.</targetPath>
       </resource>
     </resources>
 

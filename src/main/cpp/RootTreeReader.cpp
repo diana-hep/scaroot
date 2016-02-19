@@ -8,6 +8,28 @@
 #include <TTreeReaderValue.h>
 #include <TTreeReaderArray.h>
 
+// class RootTreeReader {
+//   public:
+//     RootTreeReader(char *tfileLocation, char *ttreeLocation);
+//     int hello();
+// }
+
+// RootTreeReader::RootTreeReader(char *tfileLocation, char *ttreeLocation) {
+//   std::cout << "HEY " << tfileLocation << " " << ttreeLocation << std::endl;
+// }
+
+// int RootTreeReader::hello() {
+//   return 321;
+// }
+
+int hello() {
+  std::cout << "HEY" << std::endl;
+  return 123;
+}
+
+
+
+
 // int main(int argc, char **argv) {
 //   // std::cout << "BEGIN" << std::endl;
 

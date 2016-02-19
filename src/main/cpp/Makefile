@@ -1,5 +1,5 @@
-all: root2avro.cpp
+all: RootTreeReader.cpp
 	mkdir -p ../../../src/main/resources
-	g++ ttreeReader.cpp -o ../../../src/main/resources/ttreeReader.so \
-		-fPIC -shared
+	g++ RootTreeReader.cpp -o ../../../src/main/resources/libRootTreeReader.so \
+		-fPIC -shared \
 		-Wl,--no-as-needed $(shell root-config --cflags --ldflags --libs) -lTreePlayer

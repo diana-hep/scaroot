@@ -32,11 +32,23 @@
       <version>${scala.version}</version>
     </dependency>
 
-    <!-- <dependency> -->
-    <!--   <groupId>org.scalamacros</groupId> -->
-    <!--   <artifactId>quasiquotes_${scala.tools.version}</artifactId> -->
-    <!--   <version>2.1.0</version> -->
-    <!-- </dependency> -->
+    <dependency>
+      <groupId>org.scalamacros</groupId>
+      <artifactId>quasiquotes_${scala.tools.version}</artifactId>
+      <version>2.1.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.nativelibs4java</groupId>
+      <artifactId>jnaerator</artifactId>
+      <version>0.12</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.nativelibs4java</groupId>
+      <artifactId>bridj</artifactId>
+      <version>0.7.0</version>
+    </dependency>
 
     <!-- <dependency> -->
     <!--   <groupId>net.java.dev.jna</groupId> -->

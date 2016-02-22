@@ -14,14 +14,26 @@ import org.dianahep.scaroot._
 
 class DefaultSuite extends FlatSpec with Matchers {
   "Bridj" must "work" in {
-    println("BEGIN")
     val fileLocation = pointerToCString("root://cmsxrootd.fnal.gov//store/user/pivarski/TrackResonanceNtuple.root")
     val treeLocation = pointerToCString("TrackResonanceNtuple/twoMuon")
-    val namesTypes = Seq("mass_mumu" -> "Float", "px" -> "Float", "py" -> "Float", "pz" -> "Float")
+    val namesTypes = Seq("mass_mumu" -> "float", "px" -> "float", "py" -> "float", "pz" -> "float")
     val names: Pointer[Pointer[java.lang.Byte]] = pointerToArray(namesTypes map {case (n, _) => pointerToCString(n)} toArray)
     val types: Pointer[Pointer[java.lang.Byte]] = pointerToArray(namesTypes map {case (_, t) => pointerToCString(t)} toArray)
 
     val rootTreeReader = new RootTreeReader(fileLocation, treeLocation, namesTypes.size, names, types);
-    println("END")
+
+    val builder = new scala.collection.immutable.VectorBuilder[(Float, Float, Float, Float)]
+    while (rootTreeReader.next()) {
+      val tuple = (rootTreeReader.get(0).getFloat, rootTreeReader.get(1).getFloat, rootTreeReader.get(2).getFloat, rootTreeReader.get(3).getFloat)
+      builder += tuple
+    }
+    val vector = builder.result
+
+    println("done", vector.size)
+    Thread.sleep(5)
+
+    // vector.foreach(println)
+
+    println("done done")
   }
 }

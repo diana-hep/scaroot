@@ -4,4 +4,6 @@
 
 -I$(DIR)/../cpp/
 
+-skipFunctions newValue_.*
+
 $(DIR)/../cpp/RootTreeReader.h

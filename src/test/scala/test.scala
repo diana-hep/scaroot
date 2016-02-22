@@ -24,7 +24,8 @@ class DefaultSuite extends FlatSpec with Matchers {
 
     val builder = new scala.collection.immutable.VectorBuilder[(Float, Float, Float, Float)]
     while (rootTreeReader.next()) {
-      val tuple = (rootTreeReader.get(0).getFloat, rootTreeReader.get(1).getFloat, rootTreeReader.get(2).getFloat, rootTreeReader.get(3).getFloat)
+      // val tuple = (rootTreeReader.get(0).getFloat, rootTreeReader.get(1).getFloat, rootTreeReader.get(2).getFloat, rootTreeReader.get(3).getFloat)
+      val tuple = (rootTreeReader.get(0), rootTreeReader.get(1), rootTreeReader.get(2), rootTreeReader.get(3))
       builder += tuple
     }
     val vector = builder.result
@@ -32,7 +33,7 @@ class DefaultSuite extends FlatSpec with Matchers {
     println("done", vector.size)
     Thread.sleep(5)
 
-    // vector.foreach(println)
+    vector.foreach(println)
 
     println("done done")
   }

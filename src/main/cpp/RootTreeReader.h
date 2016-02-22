@@ -9,10 +9,10 @@
 TTreeReaderValue<float>* newValue_float(TTreeReader &reader, const char *name);
 
 class RootTreeReader {
-protected:
+private:
   TFile *tfile;
   TTreeReader *reader;
-  ROOT::Internal::TTreeReaderValueBase **values;
+  // ROOT::Internal::TTreeReaderValueBase **values;
 
   bool valid = false;
   const char *errstring = nullptr;
@@ -20,7 +20,8 @@ protected:
 public:
   RootTreeReader(const char *fileLocation, const char *treeLocation, int size, const char **names, const char **types);
   bool next();
-  void *get(int index);
+  // void *get(int index);
+  float get(int index);
 };
 
 #endif // ROOTTREEREADER_H

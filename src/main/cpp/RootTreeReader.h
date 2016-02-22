@@ -18,9 +18,9 @@ private:
   const char *errstring = nullptr;
 
 public:
-  RootTreeReader(const char *fileLocation, const char *treeLocation, int size, const char **names, const char **types);
+  RootTreeReader();  // (const char *fileLocation, const char *treeLocation, int size, const char **names, const char **types);
   bool next();
-  void *get(int index);
+  float get_float(int index);
 };
 
 #endif // ROOTTREEREADER_H

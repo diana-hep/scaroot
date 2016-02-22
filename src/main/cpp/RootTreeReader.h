@@ -1,26 +1,9 @@
-#ifndef _ROOTTREEREADER_H
-#define _ROOTTREEREADER_H
-
-#include <TFile.h>
-#include <TTreeReader.h>
-#include <TTreeReaderValue.h>
-#include <TTreeReaderArray.h>
-
-TTreeReaderValue<float>* newValue_float(TTreeReader &reader, const char *name);
+#include <string>
 
 class RootTreeReader {
 private:
-  TFile *tfile;
-  TTreeReader *reader;
-  ROOT::Internal::TTreeReaderValueBase **values;
-
-  bool valid = false;
-  const char *errstring = nullptr;
-
+  std::string mystuff;
 public:
-  RootTreeReader();  // (const char *fileLocation, const char *treeLocation, int size, const char **names, const char **types);
-  bool next();
-  float get_float(int index);
+  void set(const std::string &stuff) { this->mystuff = stuff; }
+  std::string get() { return mystuff; }
 };
-
-#endif // ROOTTREEREADER_H

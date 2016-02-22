@@ -1,9 +1,0 @@
--library RootTreeReader
-
--package org.dianahep.scaroot
-
--I$(DIR)/../cpp/
-
--skipFunctions newValue_.*
-
-$(DIR)/../cpp/RootTreeReader.h

@@ -15,9 +15,7 @@ import org.dianahep.scaroot._
 class DefaultSuite extends FlatSpec with Matchers {
   "Bridj" must "work" in {
     println("BEGIN")
-    val rootTreeReader = new RootTreeReader(pointerToCString("one"), pointerToCString("two"));
-    println("MIDDLE")
-    println(rootTreeReader.hello())
+    val rootTreeReader = new RootTreeReader(pointerToCString("root://cmsxrootd.fnal.gov//store/user/pivarski/TrackResonanceNtuple.root"), pointerToCString("TrackResonanceNtuple/twoMuon"));
     println("END")
   }
 }

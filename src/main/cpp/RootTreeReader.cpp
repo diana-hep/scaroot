@@ -5,12 +5,17 @@
 
 #include "RootTreeReader.h"
 
-RootTreeReader::RootTreeReader(const char *fileLocation, const char *treeLocation) {
+RootTreeReader::RootTreeReader(const char *fileLocation, const char *treeLocation, int size, const char **names, const char **types) {
   std::cout << "START" << std::endl;
   tfile = TFile::Open(fileLocation);
   std::cout << "got file" << std::endl;
   reader = new TTreeReader(treeLocation, tfile);
   std::cout << "got reader" << std::endl;
+
+  for (int i = 0;  i < size;  i++) {
+    std::cout << "    " << names[i] << " " << types[i] << std::endl;
+  }
+
   std::cout << "FINISH" << std::endl;
 }
 

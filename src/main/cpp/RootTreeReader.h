@@ -10,9 +10,12 @@ class RootTreeReader {
 protected:
   TFile *tfile;
   TTreeReader *reader;
+  bool valid = false;
+  const char *errstring = nullptr;
 
 public:
-  RootTreeReader(const char *fileLocation, const char *treeLocation);
+  RootTreeReader(const char *fileLocation, const char *treeLocation, int size, const char **names, const char **types);
+
 };
 
 #endif // ROOTTREEREADER_H

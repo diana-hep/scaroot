@@ -1,9 +1,11 @@
-#include <string>
+#ifndef ROOTTREEREADER_H
+#define ROOTTREEREADER_H
 
-class RootTreeReader {
-private:
-  std::string mystuff;
-public:
-  void set(const std::string &stuff) { this->mystuff = stuff; }
-  std::string get() { return mystuff; }
-};
+#include "TFile.h"
+
+extern "C" {
+  int test1(int value);
+  TFile *test2();
+}
+
+#endif // ROOTTREEREADER_H

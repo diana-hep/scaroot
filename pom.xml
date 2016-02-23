@@ -39,9 +39,9 @@
     <!-- </dependency> -->
 
     <dependency>
-      <groupId>org.bytedeco</groupId>
-      <artifactId>javacpp</artifactId>
-      <version>1.1</version>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>4.2.1</version>
     </dependency>
 
     <!-- <dependency> -->
@@ -67,34 +67,31 @@
     <plugins>
 
       <plugin>
+        <groupId>com.nativelibs4java</groupId>
+        <artifactId>maven-jnaerator-plugin</artifactId>
+        <version>0.12</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.4.0</version>
         <executions>
           <execution>
-            <id>javacpp</id>
-            <phase>process-classes</phase>
+            <phase>generate-sources</phase>
             <goals>
               <goal>exec</goal>
             </goals>
             <configuration>
-              <workingDirectory>.</workingDirectory>
-              <executable>java</executable>
-              <arguments>
-                <argument>-jar</argument>
-                <argument>javacpp-1.1.jar</argument>
-                <argument>-classpath</argument>
-                <argument>target/classes</argument>
-                <argument>-d</argument>
-                <argument>target/classes/lib</argument>
-                <argument>org/dianahep/scaroot/RootTreeReader</argument>
-              </arguments>
-              <!-- <executable>java</executable> -->
-              <!-- <arguments> -->
-              <!--   <argument>-jar</argument>       <argument>${org.bytedeco.javacpp:javacpp:jar}</argument> -->
-              <!--   <argument>-classpath</argument> <argument>${project.build.outputDirectory}</argument> -->
-              <!--   <argument>-d</argument>         <argument>${project.build.outputDirectory}/lib/</argument> -->
-              <!-- </arguments> -->
+              <workingDirectory>src/main/cpp</workingDirectory>
+              <executable>make</executable>
             </configuration>
           </execution>
         </executions>
@@ -198,17 +195,13 @@
     </plugins>
 
     <resources>
-      <!-- <resource> -->
-      <!--   <directory>target/native/lib</directory> -->
-      <!--   <targetPath>lib</targetPath> -->
-      <!-- </resource> -->
+      <resource>
+        <directory>target/native</directory>
+        <targetPath>.</targetPath>
+      </resource>
     </resources>
 
     <testResources>
-      <!-- <testResource> -->
-      <!--   <directory>src/test/resources</directory> -->
-      <!--   <targetPath>resources</targetPath> -->
-      <!-- </testResource> -->
     </testResources>
   </build>
 </project>

@@ -2,10 +2,22 @@
 
 #include "RootTreeReader.h"
 
-int test1(int value) {
-  return value + 100;
+TFile *newFile(const char *fileLocation) {
+  return TFile::Open(fileLocation);
 }
 
-TFile *test2() {
-  return new TFile("/home/pivarski/diana-github/test-examples/verysimple.root");
+TTreeReader *newReader(TFile *file, const char *treeLocation) {
+  return new TTreeReader(treeLocation, file);
+}
+
+bool readerNext(TTreeReader *reader) {
+  return reader->Next();
+}
+
+TTreeReaderValueBase *newValue_float(TTreeReader *reader, const char *name) {
+  return new TTreeReaderValue<float>(*reader, name);
+}
+
+float getValue_float(TTreeReaderValueBase *value) {
+  return *((float*)value->GetAddress());
 }

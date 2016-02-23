@@ -2,8 +2,6 @@
 
 -package org.dianahep.scaroot
 
--skipFunctions newValue_.*
-
 -runtime JNA
 
 -I$(DIR)/../cpp/

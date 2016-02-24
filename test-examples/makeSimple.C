@@ -26,6 +26,7 @@ void makeSimple() {
   Float_t five[2];
   Float_t six[4];
   Float_t seven[2][2];
+  Float_t sevenseven[4][4];
   TObjArray eight;
 
   tree->Branch("one", &one, "one/I");
@@ -36,9 +37,10 @@ void makeSimple() {
   tree->Branch("five", &five, "five[2]/F");
   tree->Branch("six", &six, "six[one]/F");
   tree->Branch("seven", &seven, "seven[2][2]/F");
+  tree->Branch("sevenseven", &sevenseven, "sevenseven[one][one]/F");
   TBranch *check = tree->Branch("eight", &eight, 16000, 0);
 
-  std::cout << "check " << (((TBranchElement*)check)->GetType()) << " " << TBranchElement::kSTLNode << std::endl;
+  // std::cout << "check " << (((TBranchElement*)check)->GetType()) << " " << TBranchElement::kSTLNode << std::endl;
 
   one = 1;
   two = 1.1;
@@ -53,6 +55,7 @@ void makeSimple() {
   seven[0][1] = 0.0;
   seven[1][0] = 0.0;
   seven[1][1] = 1.1;
+  sevenseven[0][0] = 3.14;
   eight.Add(new TObjString("uno"));
   tree->Fill();
 
@@ -70,6 +73,10 @@ void makeSimple() {
   seven[0][1] = 0.0;
   seven[1][0] = 0.0;
   seven[1][1] = 2.2;
+  sevenseven[0][0] = 3.14;
+  sevenseven[0][1] = 3.14;
+  sevenseven[1][0] = 3.14;
+  sevenseven[1][1] = 3.14;
   eight.Add(new TObjString("dos"));
   tree->Fill();
 
@@ -88,6 +95,15 @@ void makeSimple() {
   seven[0][1] = 0.0;
   seven[1][0] = 0.0;
   seven[1][1] = 3.3;
+  sevenseven[0][0] = 3.14;
+  sevenseven[0][1] = 3.14;
+  sevenseven[0][2] = 3.14;
+  sevenseven[1][0] = 3.14;
+  sevenseven[1][1] = 3.14;
+  sevenseven[1][2] = 3.14;
+  sevenseven[2][0] = 3.14;
+  sevenseven[2][1] = 3.14;
+  sevenseven[2][2] = 3.14;
   eight.Add(new TObjString("tres"));
   tree->Fill();
 
@@ -107,16 +123,32 @@ void makeSimple() {
   seven[0][1] = 0.0;
   seven[1][0] = 0.0;
   seven[1][1] = 4.4;
+  sevenseven[0][0] = 3.14;
+  sevenseven[0][1] = 3.14;
+  sevenseven[0][2] = 3.14;
+  sevenseven[0][3] = 3.14;
+  sevenseven[1][0] = 3.14;
+  sevenseven[1][1] = 3.14;
+  sevenseven[1][2] = 3.14;
+  sevenseven[1][3] = 3.14;
+  sevenseven[2][0] = 3.14;
+  sevenseven[2][1] = 3.14;
+  sevenseven[2][2] = 3.14;
+  sevenseven[2][3] = 3.14;
+  sevenseven[3][0] = 3.14;
+  sevenseven[3][1] = 3.14;
+  sevenseven[3][2] = 3.14;
+  sevenseven[3][3] = 3.14;
   eight.Add(new TObjString("quatro"));
   tree->Fill();
 
   f2->Write();
   f2->Close();
 
-  // TFile *f2again = new TFile("simple.root");
-  // TTree *treeagain;
-  // f2again->GetObject("tree", treeagain);
-  // treeagain->Scan("eight");
+  TFile *f2again = new TFile("simple.root");
+  TTree *treeagain;
+  f2again->GetObject("tree", treeagain);
+  treeagain->Scan("sevenseven");
 
   TFile *f3 = new TFile("notsosimple.root", "RECREATE");
   TTree *tree2 = new TTree("tree", "fake data");

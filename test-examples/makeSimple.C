@@ -31,7 +31,7 @@ void makeSimple() {
   tree->Branch("five", &five, "five[2]/F");
   tree->Branch("six", &six, "six[one]/F");
   tree->Branch("seven", &seven, "seven[2][2]/F");
-  tree->Branch("eight", &eight, "eight/O");
+  tree->Branch("eight", &eight, 16000, 0);
 
   one = 1;
   two = 1.1;

@@ -156,18 +156,21 @@ void makeSimple() {
   std::vector<Double_t> vector;
   std::vector<std::string> vector2;
   std::vector<std::vector<Double_t> > tensor;
+  // std::vector<std::vector<std::vector<Double_t> > > rank3;
   // std::vector<std::vector<std::string> > tensor2;
   tree2->Branch("scalar", &scalar);
-  tree2->Branch("vector", &vector);
-  tree2->Branch("vector2", &vector2);
+  tree2->Branch("vekkktor", &vector);
+  tree2->Branch("vekkktor2", &vector2);
   tree2->Branch("tensor", &tensor);
   // tree2->Branch("tensor2", &tensor2);
+  // tree2->Branch("rank3", &rank3);
 
   scalar = 3.14;
   vector = {1.1, 2.2, 3.3};
   vector2 = {std::string("one"), std::string("two"), std::string("three")};
   tensor = {{0.9, 0.1}, {-0.1, 0.9}};
   // tensor2 = {{std::string("a"), std::string("b")}, {std::string("c"), std::string("d")}};
+  // rank3 = {{}, {{0.9, 0.1}}, {{0.9, 0.1}, {-0.1, 0.9}}};
   tree2->Fill();
 
   f3->Write();

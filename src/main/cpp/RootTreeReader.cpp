@@ -2,6 +2,10 @@
 
 #include "RootTreeReader.h"
 
+void resetSignals() {
+  gSystem->ResetSignals();
+}
+
 TFile *newFile(const char *fileLocation) {
   return TFile::Open(fileLocation);
 }

@@ -16,31 +16,35 @@ class DefaultSuite extends FlatSpec with Matchers {
     // Native.setProtected(true)
     // println("Native.isProtected", Native.isProtected)
 
-    val lib = RootTreeReaderLibrary.INSTANCE
-
     println("zero")
-    lib.resetSignals()
+    RootTreeReaderLibrary.resetSignals()
     println("one")
-    val file = lib.newFile("/home/pivarski/fun/rio/TrackResonanceNtuple.root")
+    val file = RootTreeReaderLibrary.newFile("/home/pivarski/fun/rio/TrackResonanceNtuple.root")
     println("two")
-    val reader = lib.newReader(file, "TrackResonanceNtuple/twoMuon")
+    val reader = RootTreeReaderLibrary.newReader(file, "TrackResonanceNtuple/twoMuon")
     println("three")
-    val mass = lib.newValue_float(reader, "mass_mumu")
-    val px = lib.newValue_float(reader, "px")
-    val py = lib.newValue_float(reader, "py")
-    val pz = lib.newValue_float(reader, "pz")
+    val mass = RootTreeReaderLibrary.newValue_float(reader, "mass_mumu")
+    val px = RootTreeReaderLibrary.newValue_float(reader, "px")
+    val py = RootTreeReaderLibrary.newValue_float(reader, "py")
+    val pz = RootTreeReaderLibrary.newValue_float(reader, "pz")
     println("four")
-    var counter = 0
-    while (lib.readerNext(reader) > 0) {
-      println("five")
-      println(lib.getValue_float(mass), lib.getValue_float(px), lib.getValue_float(py), lib.getValue_float(pz), System.getenv.get("LD_PRELOAD"))
-      counter += 1
-      if (counter % 1000 == 0) {
-        println("gc start")
-        System.gc()
-        println("gc end")
-      }
+    val builder = new scala.collection.immutable.VectorBuilder[(Float, Float, Float, Float)]
+    while (RootTreeReaderLibrary.readerNext(reader) > 0) {
+      builder += Tuple4(RootTreeReaderLibrary.getValue_float(mass), RootTreeReaderLibrary.getValue_float(px), RootTreeReaderLibrary.getValue_float(py), RootTreeReaderLibrary.getValue_float(pz))
+      // if (counter % 1000 == 0) {
+      //   println("gc start")
+      //   System.gc()
+      //   println("gc end")
+      // }
     }
-    println("six")
+    println("end")
+    val vector = builder.result
+
+    println("done", vector.size)
+    Thread.sleep(5)
+
+    vector.take(10).foreach(println)
+
+    println("done done")
   }
 }

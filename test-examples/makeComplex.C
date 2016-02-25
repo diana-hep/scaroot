@@ -69,7 +69,7 @@ void makeComplex() {
   std::vector<unsigned long> myvectorulong;
   std::vector<float> myvectorfloat;
   std::vector<double> myvectordouble;
-  std::vector<char*> myvectorfloatstr;
+  // std::vector<char*> myvectorfloatstr;
   std::vector<std::string> myvectorstdstr;
   std::vector<structure> myvectorstruct;
 
@@ -176,7 +176,7 @@ void makeComplex() {
   myvectorulong = {3, 3};
   myvectorfloat = {3.14, -3.14};
   myvectordouble = {3.14, -3.14};
-  myvectorfloatstr = {there, there};
+  // myvectorfloatstr = {there, there};
   myvectorstdstr = {std::string("uno"), std::string("dos")};
   myvectorstruct = {myarraystruct[1], myarraystruct[0]};
 
@@ -346,7 +346,7 @@ void makeComplex() {
     t->Branch("myvectorulong", &myvectorulong);
     t->Branch("myvectorfloat", &myvectorfloat);
     t->Branch("myvectordouble", &myvectordouble);
-    t->Branch("myvectorfloatstr", &myvectorfloatstr);
+    // t->Branch("myvectorfloatstr", &myvectorfloatstr);
     t->Branch("myvectorstdstr", &myvectorstdstr);
     // t->Branch("myvectorstruct", &myvectorstruct);
   }

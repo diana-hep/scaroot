@@ -6,10 +6,10 @@ import org.bridj.ann.Library;
 import org.bridj.cpp.CPPObject;
 
 @Library(value = "Core", dependencies = {"z", "stdc++", "m", "gcc_s"})
-public class TInterpreter extends CPPObject {
+public class TUnixSystem extends CPPObject {
     static {
         BridJ.register();
     }
     
-    public native static Pointer<TInterpreter> Instance();
+    public native void ResetSignals();
 }

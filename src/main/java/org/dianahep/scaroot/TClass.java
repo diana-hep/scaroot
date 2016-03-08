@@ -6,7 +6,8 @@ import org.bridj.ann.Library;
 import org.bridj.cpp.CPPObject;
 
 @Library(value = "Core", dependencies = {"z", "stdc++", "m", "gcc_s"})
-public class TUnixSystem extends CPPObject {
+public class TClass extends CPPObject {
     static { BridJ.register(); }
-    public native void ResetSignals();
+    public native static Pointer<TClass> GetClass(Pointer<Byte> name, boolean load, boolean silent);
+    public native Pointer<TList> GetListOfAllPublicMethods(boolean load);
 }

@@ -7,9 +7,6 @@ import org.bridj.cpp.CPPObject;
 
 @Library(value = "Core", dependencies = {"z", "stdc++", "m", "gcc_s"})
 public class TInterpreter extends CPPObject {
-    static {
-        BridJ.register();
-    }
-    
+    static { BridJ.register(); }
     public native static Pointer<TInterpreter> Instance();
 }

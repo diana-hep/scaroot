@@ -23,14 +23,14 @@ class DefaultSuite extends FlatSpec with Matchers {
     gInterpreter.get.Declare(pointerToCString("""
 class Something {
 public:
-  Something() {
-    TH1F hist("hey", "there", 100, 0, 1);
-  }
+  Something() {}
   int plus(int x, int y) { return x + y; }
 };
 """))
 
     val tclass = TClass.GetClass(pointerToCString("Something"), true, false);
+
+    val instance = tclass.get.New(TClass.ENewType.fromValue(1), false)
 
     val tlist = tclass.get.GetListOfMethods(true)
 
@@ -39,9 +39,9 @@ public:
     var tmethod = tlistiter.Next()
 
     while (tmethod != Pointer.NULL) {
-      // println(tmethod.as(classOf[TFunction]).get.Property())
-      println(tmethod.as(classOf[TFunction]).get.GetSignature().getCString)
-      // println(tmethod.as(classOf[TFunction]).get.GetName())
+      println(tmethod.as(classOf[TFunction]))
+
+      // println(tmethod.as(classOf[TFunction]).get.GetDeclId())
       tmethod = tlistiter.Next()
     }
 

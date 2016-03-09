@@ -6,7 +6,7 @@
   <inceptionYear>2016</inceptionYear>
 
   <groupId>org.diana-hep</groupId>
-  <artifactId>scaroot</artifactId>
+  <artifactId>scaroot-${scala.tools.version}</artifactId>
   <version>TRUNK</version>
   <packaging>jar</packaging>
 
@@ -26,29 +26,22 @@
       <version>${scala.version}</version>
     </dependency>
 
-    <!-- <dependency> -->
-    <!--   <groupId>org.scala-lang</groupId> -->
-    <!--   <artifactId>scala-reflect</artifactId> -->
-    <!--   <version>${scala.version}</version> -->
-    <!-- </dependency> -->
-
-    <!-- <dependency> -->
-    <!--   <groupId>org.scalamacros</groupId> -->
-    <!--   <artifactId>quasiquotes_${scala.tools.version}</artifactId> -->
-    <!--   <version>2.1.0</version> -->
-    <!-- </dependency> -->
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-reflect</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
 
     <dependency>
-      <groupId>net.java.dev.jna</groupId>
-      <artifactId>jna</artifactId>
-      <version>4.2.1</version>
+      <groupId>org.scalamacros</groupId>
+      <artifactId>quasiquotes_${scala.tools.version}</artifactId>
+      <version>2.1.0</version>
     </dependency>
 
     <!-- <dependency> -->
-    <!--   <groupId>org.apache.spark</groupId> -->
-    <!--   <artifactId>spark-core_${scala.tools.version}</artifactId> -->
-    <!--   <version>1.6.0</version> -->
-    <!--   <scope>provided</scope> -->
+    <!--   <groupId>net.java.dev.jna</groupId> -->
+    <!--   <artifactId>jna</artifactId> -->
+    <!--   <version>4.2.1</version> -->
     <!-- </dependency> -->
 
     <dependency>
@@ -66,36 +59,36 @@
   <build>
     <plugins>
 
-      <plugin>
-        <groupId>com.nativelibs4java</groupId>
-        <artifactId>maven-jnaerator-plugin</artifactId>
-        <version>0.12</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>generate</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+      <!-- <plugin> -->
+      <!--   <groupId>com.nativelibs4java</groupId> -->
+      <!--   <artifactId>maven-jnaerator-plugin</artifactId> -->
+      <!--   <version>0.12</version> -->
+      <!--   <executions> -->
+      <!--     <execution> -->
+      <!--       <goals> -->
+      <!--         <goal>generate</goal> -->
+      <!--       </goals> -->
+      <!--     </execution> -->
+      <!--   </executions> -->
+      <!-- </plugin> -->
 
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.4.0</version>
-        <executions>
-          <execution>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <workingDirectory>src/main/cpp</workingDirectory>
-              <executable>make</executable>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+      <!-- <plugin> -->
+      <!--   <groupId>org.codehaus.mojo</groupId> -->
+      <!--   <artifactId>exec-maven-plugin</artifactId> -->
+      <!--   <version>1.4.0</version> -->
+      <!--   <executions> -->
+      <!--     <execution> -->
+      <!--       <phase>generate-sources</phase> -->
+      <!--       <goals> -->
+      <!--         <goal>exec</goal> -->
+      <!--       </goals> -->
+      <!--       <configuration> -->
+      <!--         <workingDirectory>src/main/cpp</workingDirectory> -->
+      <!--         <executable>make</executable> -->
+      <!--       </configuration> -->
+      <!--     </execution> -->
+      <!--   </executions> -->
+      <!-- </plugin> -->
 
       <plugin>
         <!-- see http://davidb.github.com/scala-maven-plugin -->
@@ -194,12 +187,12 @@
 
     </plugins>
 
-    <resources>
-      <resource>
-        <directory>target/native</directory>
-        <targetPath>.</targetPath>
-      </resource>
-    </resources>
+    <!-- <resources> -->
+    <!--   <resource> -->
+    <!--     <directory>target/native</directory> -->
+    <!--     <targetPath>.</targetPath> -->
+    <!--   </resource> -->
+    <!-- </resources> -->
 
     <testResources>
     </testResources>

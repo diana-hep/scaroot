@@ -9,11 +9,41 @@ import com.sun.jna.Native
 import com.sun.jna.Pointer
 
 package scaroot {
+  /////////////////////////////////////////////// Param
+
   trait Param {
     def name: String
     def value: Pointer
     def hasCppType(x: String): Boolean
   }
+
+  case class BooleanParam(name: String) extends Param {
+    val value: Pointer = new Memory(Native.getNativeSize(java.lang.Byte.TYPE))
+    def apply(x: Boolean) = {
+      value.setByte(0, if (x) 1 else 0)
+      value
+    }
+    def hasCppType(x: String) = x == "bool"
+  }
+
+  case class ByteParam(name: String) extends Param {
+    val value: Pointer = new Memory(Native.getNativeSize(java.lang.Byte.TYPE))
+    def apply(x: Byte) = {
+      value.setByte(0, x)
+      value
+    }
+    def hasCppType(x: String) = x == "char"
+  }
+
+  case class ShortParam(name: String) extends Param {
+    val value: Pointer = new Memory(Native.getNativeSize(java.lang.Short.TYPE))
+    def apply(x: Short) = {
+      value.setShort(0, x)
+      value
+    }
+    def hasCppType(x: String) = x == "short"
+  }
+
   case class IntParam(name: String) extends Param {
     val value: Pointer = new Memory(Native.getNativeSize(java.lang.Integer.TYPE))
     def apply(x: Int) = {
@@ -23,14 +53,90 @@ package scaroot {
     def hasCppType(x: String) = x == "int"
   }
 
+  case class LongParam(name: String) extends Param {
+    val value: Pointer = new Memory(Native.getNativeSize(java.lang.Long.TYPE))
+    def apply(x: Long) = {
+      value.setLong(0, x)
+      value
+    }
+    def hasCppType(x: String) = x == "long"
+  }
+
+  case class FloatParam(name: String) extends Param {
+    val value: Pointer = new Memory(Native.getNativeSize(java.lang.Float.TYPE))
+    def apply(x: Float) = {
+      value.setFloat(0, x)
+      value
+    }
+    def hasCppType(x: String) = x == "float"
+  }
+
+  case class DoubleParam(name: String) extends Param {
+    val value: Pointer = new Memory(Native.getNativeSize(java.lang.Double.TYPE))
+    def apply(x: Double) = {
+      value.setDouble(0, x)
+      value
+    }
+    def hasCppType(x: String) = x == "double"
+  }
+
+  // // TODO:
+  // case class StringParam(name: String) extends Param
+  // case class PointerParam(name: String) extends Param
+
+  /////////////////////////////////////////////// Ret
+
   trait Ret {
     def hasCppType(x: String): Boolean
   }
+
+  case class BooleanRet() extends Ret {
+    val value: Pointer = new Memory(Native.getNativeSize(java.lang.Byte.TYPE))
+    def apply() = value.getByte(0) != 0
+    def hasCppType(x: String) = x == "bool"
+  }
+
+  case class ByteRet() extends Ret {
+    val value: Pointer = new Memory(Native.getNativeSize(java.lang.Byte.TYPE))
+    def apply() = value.getByte(0)
+    def hasCppType(x: String) = x == "char"
+  }
+
+  case class ShortRet() extends Ret {
+    val value: Pointer = new Memory(Native.getNativeSize(java.lang.Short.TYPE))
+    def apply() = value.getShort(0)
+    def hasCppType(x: String) = x == "short"
+  }
+
   case class IntRet() extends Ret {
     val value: Pointer = new Memory(Native.getNativeSize(java.lang.Integer.TYPE))
     def apply() = value.getInt(0)
     def hasCppType(x: String) = x == "int"
   }
+
+  case class LongRet() extends Ret {
+    val value: Pointer = new Memory(Native.getNativeSize(java.lang.Long.TYPE))
+    def apply() = value.getLong(0)
+    def hasCppType(x: String) = x == "long"
+  }
+
+  case class FloatRet() extends Ret {
+    val value: Pointer = new Memory(Native.getNativeSize(java.lang.Float.TYPE))
+    def apply() = value.getFloat(0)
+    def hasCppType(x: String) = x == "float"
+  }
+
+  case class DoubleRet() extends Ret {
+    val value: Pointer = new Memory(Native.getNativeSize(java.lang.Double.TYPE))
+    def apply() = value.getDouble(0)
+    def hasCppType(x: String) = x == "double"
+  }
+
+  // // TODO
+  // case class StringRet() extends Ret
+  // case class PointerRet() extends Ret
+
+  /////////////////////////////////////////////// Method
 
   class Method(val name: String, val params: List[Param], val ret: Ret, tclass: RootAccessLibrary.TClass) {
     val tmethod =
@@ -46,10 +152,7 @@ package scaroot {
     override def toString() = s"""Method("$name", $params, $ret)"""
   }
 
-  trait RootClassInstance {
-    def rootMethods: List[Method]
-    def rootInstance: Pointer
-  }
+  /////////////////////////////////////////////// RootClassFactory and RootClassInstance
 
   trait RootClassFactory[INTERFACE] {
     def className: String
@@ -57,9 +160,16 @@ package scaroot {
     def tclass: RootAccessLibrary.TClass
     def newInstance: INTERFACE
   }
+
+  trait RootClassInstance {
+    def rootMethods: List[Method]
+    def rootInstance: Pointer
+  }
 }
 
 package object scaroot {
+  /////////////////////////////////////////////// macro to create RootClassFactory (which creates RootClassInstance)
+
   def rootClassFactory[INTERFACE](cpp: String): RootClassFactory[INTERFACE] = macro rootClassFactoryImpl[INTERFACE]
 
   def rootClassFactoryImpl[INTERFACE : c.WeakTypeTag](c: Context)(cpp: c.Expr[String]): c.Expr[RootClassFactory[INTERFACE]] = {
@@ -164,5 +274,4 @@ package object scaroot {
       }
     """)
   }
-
 }

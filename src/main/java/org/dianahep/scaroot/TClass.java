@@ -9,5 +9,5 @@ import org.bridj.cpp.CPPObject;
 public class TClass extends CPPObject {
     static { BridJ.register(); }
     public native static Pointer<TClass> GetClass(Pointer<Byte> name, boolean load, boolean silent);
-    public native Pointer<TList> GetListOfAllPublicMethods(boolean load);
+    public native Pointer<TList> GetListOfMethods(boolean load);
 }

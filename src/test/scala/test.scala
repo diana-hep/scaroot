@@ -32,24 +32,20 @@ public:
 
     val tclass = TClass.GetClass(pointerToCString("Something"), true, false);
 
-    val tlist = tclass.get.GetListOfAllPublicMethods(true)
+    val tlist = tclass.get.GetListOfMethods(true)
 
-    val tlistiter = Pointer.getPointer(new TListIter(tlist, true))
+    val tlistiter = new TListIter(tlist, true)
 
-    // val titer1 = new TIter(tlistiter.as(classOf[TIter]).get)
+    var tmethod = tlistiter.Next()
 
-    // val titer2 = titer1.Begin()
+    while (tmethod != Pointer.NULL) {
+      // println(tmethod.as(classOf[TFunction]).get.Property())
+      println(tmethod.as(classOf[TFunction]).get.GetSignature().getCString)
+      // println(tmethod.as(classOf[TFunction]).get.GetName())
+      tmethod = tlistiter.Next()
+    }
 
-    println(tlistiter.get.Next())
-    println(tlistiter.get.Next())
-    println(tlistiter.get.Next())
-    println(tlistiter.get.Next())
-    println(tlistiter.get.Next())
-    println(tlistiter.get.Next())
-    println(tlistiter.get.Next())
-    println(tlistiter.get.Next())
-    println(tlistiter.get.Next())
-    println(tlistiter.get.Next())
+
 
   }
 }

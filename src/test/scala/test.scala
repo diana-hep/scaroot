@@ -26,6 +26,8 @@ public:
 """)
 
     val tclass = RootAccessLibrary.tclass("Something")
+    println("tclass", tclass.getClass)
+
 
     val instance = RootAccessLibrary.newInstance(tclass)
 
@@ -57,23 +59,30 @@ public:
 
   }
 
-  // "Scala macros" must "work" in {
-  //   trait MyInterface {
-  //     def one: Int
-  //     def two(x: Int): Int
-  //     def three(x: Int, y: Int): Int
-  //   }
+  "Scala macros" must "work" in {
+    trait MyInterface {
+      def one: Int
+      def two(x: Int): Int
+      def three(x: Int, y: Int): Int
+    }
 
-  //   val factory = rootClassFactory[MyInterface]("code")
-  //   println(factory.className)
-  //   println(factory.cpp)
+    val factory = rootClassFactory[MyInterface]("""
+class MyInterface {
+public:
+  int one() { return 1; }
+  int two(int x) { return x + 10; }
+  int three(int x, int y) { return x + y; }
+};
+""")
+    println(factory.className)
+    println(factory.cpp)
 
-  //   val instance = factory.newInstance
+    val instance = factory.newInstance
 
-  //   println(instance)
-  //   println(instance.one)
-  //   println(instance.two(2))
-  //   println(instance.three(3, 3))
+    println(instance)
+    println(instance.one)
+    println(instance.two(2))
+    println(instance.three(3, 3))
 
-  // }
+  }
 }

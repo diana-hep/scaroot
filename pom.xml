@@ -38,11 +38,11 @@
       <version>2.1.0</version>
     </dependency>
 
-    <!-- <dependency> -->
-    <!--   <groupId>net.java.dev.jna</groupId> -->
-    <!--   <artifactId>jna</artifactId> -->
-    <!--   <version>4.2.1</version> -->
-    <!-- </dependency> -->
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>4.2.1</version>
+    </dependency>
 
     <dependency>
       <groupId>org.scalatest</groupId>
@@ -59,36 +59,36 @@
   <build>
     <plugins>
 
-      <!-- <plugin> -->
-      <!--   <groupId>com.nativelibs4java</groupId> -->
-      <!--   <artifactId>maven-jnaerator-plugin</artifactId> -->
-      <!--   <version>0.12</version> -->
-      <!--   <executions> -->
-      <!--     <execution> -->
-      <!--       <goals> -->
-      <!--         <goal>generate</goal> -->
-      <!--       </goals> -->
-      <!--     </execution> -->
-      <!--   </executions> -->
-      <!-- </plugin> -->
+      <plugin>
+        <groupId>com.nativelibs4java</groupId>
+        <artifactId>maven-jnaerator-plugin</artifactId>
+        <version>0.12</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
-      <!-- <plugin> -->
-      <!--   <groupId>org.codehaus.mojo</groupId> -->
-      <!--   <artifactId>exec-maven-plugin</artifactId> -->
-      <!--   <version>1.4.0</version> -->
-      <!--   <executions> -->
-      <!--     <execution> -->
-      <!--       <phase>generate-sources</phase> -->
-      <!--       <goals> -->
-      <!--         <goal>exec</goal> -->
-      <!--       </goals> -->
-      <!--       <configuration> -->
-      <!--         <workingDirectory>src/main/cpp</workingDirectory> -->
-      <!--         <executable>make</executable> -->
-      <!--       </configuration> -->
-      <!--     </execution> -->
-      <!--   </executions> -->
-      <!-- </plugin> -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.4.0</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <workingDirectory>src/main/cpp</workingDirectory>
+              <executable>make</executable>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
 
       <plugin>
         <!-- see http://davidb.github.com/scala-maven-plugin -->
@@ -187,12 +187,12 @@
 
     </plugins>
 
-    <!-- <resources> -->
-    <!--   <resource> -->
-    <!--     <directory>target/native</directory> -->
-    <!--     <targetPath>.</targetPath> -->
-    <!--   </resource> -->
-    <!-- </resources> -->
+    <resources>
+      <resource>
+        <directory>target/native</directory>
+        <targetPath>.</targetPath>
+      </resource>
+    </resources>
 
     <testResources>
     </testResources>

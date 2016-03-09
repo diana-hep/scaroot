@@ -7,6 +7,11 @@ import org.scalatest.FlatSpec
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.Matchers
 
+import com.sun.jna.Pointer
+import com.sun.jna.ptr.PointerByReference
+import com.sun.jna.Memory
+import com.sun.jna.Native
+
 import org.dianahep.scaroot._
 
 class DefaultSuite extends FlatSpec with Matchers {
@@ -44,8 +49,17 @@ public:
     val plus = RootAccessLibrary.tmethod(tclass, 0)
     println(plus)
 
-    val result = RootAccessLibrary.execute(plus, instance, 3, 7)
-    println(result)
+    val arg0 = new Memory(Native.getNativeSize(java.lang.Integer.TYPE))
+    val arg1 = new Memory(Native.getNativeSize(java.lang.Integer.TYPE))
+    val ret = new Memory(Native.getNativeSize(java.lang.Integer.TYPE))
+
+    arg0.setInt(0, 3)
+    arg1.setInt(0, 7)
+    ret.setInt(0, 999)
+    println(ret.getInt(0))
+
+    RootAccessLibrary.execute2(plus, instance, arg0, arg1, ret)
+    println(ret.getInt(0))
 
   }
 }

@@ -61,28 +61,28 @@ public:
 
   "Scala macros" must "work" in {
     trait MyInterface {
-      def one: Int
       def two(x: Int): Int
-      def three(x: Int, y: Int): Int
     }
 
-    val factory = rootClassFactory[MyInterface]("""
+    val part1 = """
 class MyInterface {
+"""
+    val part2 = """
 public:
-  int one() { return 1; }
+"""
+    val part3 = """
   int two(int x) { return x + 10; }
-  int three(int x, int y) { return x + y; }
 };
-""")
+"""
+
+    val factory = rootClassFactory[MyInterface](part1 + part2 + part3)
     println(factory.className)
     println(factory.cpp)
 
     val instance = factory.newInstance
 
     println(instance)
-    println(instance.one)
     println(instance.two(2))
-    println(instance.three(3, 3))
 
   }
 }

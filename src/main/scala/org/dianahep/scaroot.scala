@@ -27,15 +27,14 @@ package scaroot {
     def apply() = value.getInt(0)
   }
 
-  case class Method(name: String, params: List[Param], ret: Ret, tclass: RootAccessLibrary.TClass) {
+  class Method(val name: String, val params: List[Param], val ret: Ret, tclass: RootAccessLibrary.TClass) {
     val tmethod = RootAccessLibrary.tmethod(tclass, 0)   // FIXME
+    override def toString() = s"""Method("$name", $params, $ret)"""
   }
 
-  trait RootClassInstance[INTERFACE] {
-    // def rootClassFactory: RootClassFactory[INTERFACE]
-    // def externalMethods: List[Method]
-    // def tmethods: Map[String, RootAccessLibrary.TMethod]
-    def instance: Pointer
+  trait RootClassInstance {
+    def rootMethods: List[Method]
+    def rootInstance: Pointer
   }
 
   trait RootClassFactory[INTERFACE] {
@@ -58,7 +57,10 @@ package object scaroot {
     val undefined = interface.declarations.
       filter(x => x.isMethod  &&  x.asInstanceOf[scala.reflect.internal.Symbols#Symbol].hasFlag(scala.reflect.internal.Flags.DEFERRED))
 
-    val definitions = undefined.toList.flatMap {case method: MethodSymbol =>
+    val definitions_ = List.newBuilder[c.universe.Tree]
+    val rootMethods_ = List.newBuilder[c.universe.TermName]
+
+    undefined.toList.foreach {case method: MethodSymbol =>
       val methodParams_ = List.newBuilder[c.universe.Typed]
       val rootArgs_ = List.newBuilder[c.universe.Tree]
       val argHolderNames_ = List.newBuilder[c.universe.TermName]
@@ -104,20 +106,26 @@ package object scaroot {
           throw new Exception("oops 2")
 
       val methodHolderName = stringToTermName("__" + method.name.toString + "_method")
-      val methodHolderDef = q"val $methodHolderName = Method(${method.name.toString}, List(..$argHolderNames), $retHolderName, tclass)"
+      val methodHolderDef = q"val $methodHolderName = new Method(${method.name.toString}, List(..$argHolderNames), $retHolderName, tclass)"
 
-      val allRootArgs = List(q"$methodHolderName.tmethod", q"instance") ++ rootArgs ++ List(q"$retHolderName.value")
+      val allRootArgs = List(q"$methodHolderName.tmethod", q"rootInstance") ++ rootArgs ++ List(q"$retHolderName.value")
 
       val execute = q"""RootAccessLibrary.${stringToTermName(s"execute${argHolderDefs.size}")}"""
 
       val methodDef = q"def ${stringToTermName(method.name.toString)}(..$methodParams): ${method.returnType} = { $execute(..$allRootArgs); $retHolderName() }"
-      
-      argHolderDefs ++ List(retHolderDef, methodHolderDef, methodDef)
+
+      definitions_ ++= argHolderDefs
+      definitions_ += retHolderDef
+      definitions_ += methodHolderDef
+      definitions_ += methodDef
+
+      rootMethods_ += methodHolderName
     }
 
-    definitions.foreach(println)
+    val definitions = definitions_.result
+    val rootMethods = rootMethods_.result
 
-    val out = c.Expr[RootClassFactory[INTERFACE]](q"""
+    c.Expr[RootClassFactory[INTERFACE]](q"""
       import com.sun.jna.Memory
       import com.sun.jna.Native
       import com.sun.jna.Pointer
@@ -132,16 +140,15 @@ package object scaroot {
 
         val tclass = RootAccessLibrary.tclass(className)
 
-        def newInstance: $interface = new $interface with RootClassInstance[$interface] {
-          val instance = RootAccessLibrary.newInstance(tclass)
+        def newInstance: $interface = new $interface with RootClassInstance {
+          val rootInstance = RootAccessLibrary.newInstance(tclass)
+
           ..$definitions
+
+          def rootMethods = List(..$rootMethods)
         }
       }
     """)
-
-    println(out)
-
-    out
   }
 
 }

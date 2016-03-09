@@ -64,25 +64,20 @@ public:
       def two(x: Int): Int
     }
 
-    val part1 = """
+    val code = """
 class MyInterface {
-"""
-    val part2 = """
 public:
-"""
-    val part3 = """
   int two(int x) { return x + 10; }
 };
 """
 
-    val factory = rootClassFactory[MyInterface](part1 + part2 + part3)
-    println(factory.className)
-    println(factory.cpp)
+    val factory = rootClassFactory[MyInterface](code)
 
     val instance = factory.newInstance
-
     println(instance)
     println(instance.two(2))
+
+    instance.asInstanceOf[RootClassInstance].rootMethods.foreach(println)
 
   }
 }

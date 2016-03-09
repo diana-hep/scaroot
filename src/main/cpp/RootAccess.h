@@ -19,7 +19,8 @@ extern "C" {
   TMethod *tmethod(TClass *tclass, int methodIndex);
   const char *tmethodName(TMethod *tmethod);
   int tmethodNumArgs(TMethod *tmethod);
-  const char *tmethodArg(TMethod *tmethod, int argIndex);
+  const char *tmethodArgType(TMethod *tmethod, int argIndex);
+  const char *tmethodRetType(TMethod *tmethod);
 
   void execute0(TMethod *tmethod, void *instance, void *ret);
   void execute1(TMethod *tmethod, void *instance, void *arg0, void *ret);

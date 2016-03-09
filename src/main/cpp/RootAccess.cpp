@@ -34,8 +34,12 @@ int tmethodNumArgs(TMethod *tmethod) {
   return tmethod->GetListOfMethodArgs()->GetSize();
 }
 
-const char *tmethodArg(TMethod *tmethod, int argIndex) {
+const char *tmethodArgType(TMethod *tmethod, int argIndex) {
   return ((TMethodArg*)tmethod->GetListOfMethodArgs()->At(argIndex))->GetTypeNormalizedName().c_str();
+}
+
+const char *tmethodRetType(TMethod *tmethod) {
+  return tmethod->GetReturnTypeNormalizedName().c_str();
 }
 
 void execute0(TMethod *tmethod, void *instance, void *ret) {

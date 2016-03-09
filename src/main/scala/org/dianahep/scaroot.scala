@@ -12,6 +12,7 @@ package scaroot {
   trait Param {
     def name: String
     def value: Pointer
+    def hasCppType(x: String): Boolean
   }
   case class IntParam(name: String) extends Param {
     val value: Pointer = new Memory(Native.getNativeSize(java.lang.Integer.TYPE))
@@ -19,16 +20,29 @@ package scaroot {
       value.setInt(0, x)
       value
     }
+    def hasCppType(x: String) = x == "int"
   }
 
-  trait Ret
+  trait Ret {
+    def hasCppType(x: String): Boolean
+  }
   case class IntRet() extends Ret {
     val value: Pointer = new Memory(Native.getNativeSize(java.lang.Integer.TYPE))
     def apply() = value.getInt(0)
+    def hasCppType(x: String) = x == "int"
   }
 
   class Method(val name: String, val params: List[Param], val ret: Ret, tclass: RootAccessLibrary.TClass) {
-    val tmethod = RootAccessLibrary.tmethod(tclass, 0)   // FIXME
+    val tmethod =
+      (0 until RootAccessLibrary.numMethods(tclass)).map(RootAccessLibrary.tmethod(tclass, _)).find({tm =>
+        RootAccessLibrary.tmethodName(tm) == name  &&
+        RootAccessLibrary.tmethodNumArgs(tm) == params.size  &&
+        (0 until RootAccessLibrary.tmethodNumArgs(tm)).map(RootAccessLibrary.tmethodArgType(tm, _)).zip(params).forall({case (rootTypeName, param) =>
+          param.hasCppType(rootTypeName)
+        })  &&
+        ret.hasCppType(RootAccessLibrary.tmethodRetType(tm))
+      }).get
+
     override def toString() = s"""Method("$name", $params, $ret)"""
   }
 

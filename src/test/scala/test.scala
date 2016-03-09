@@ -41,7 +41,7 @@ public:
       // print(RootAccessLibrary.tmethodNumArgs(tmethod))
       // print(" ")
 
-      val args = 0 until RootAccessLibrary.tmethodNumArgs(tmethod) map {argIndex => RootAccessLibrary.tmethodArg(tmethod, argIndex)}
+      val args = 0 until RootAccessLibrary.tmethodNumArgs(tmethod) map {argIndex => RootAccessLibrary.tmethodArgType(tmethod, argIndex)}
       // println(args.mkString(" "))
     }
 
@@ -61,13 +61,17 @@ public:
 
   "Scala macros" must "work" in {
     trait MyInterface {
+      def one: Int
       def two(x: Int): Int
+      def three(x: Int, y: Int): Int
     }
 
     val code = """
 class MyInterface {
 public:
+  int one() { return 1; }
   int two(int x) { return x + 10; }
+  int three(int x, int y) { return x + y; }
 };
 """
 
@@ -75,7 +79,9 @@ public:
 
     val instance = factory.newInstance
     println(instance)
+    println(instance.one)
     println(instance.two(2))
+    println(instance.three(3, 30))
 
     instance.asInstanceOf[RootClassInstance].rootMethods.foreach(println)
 

@@ -7,45 +7,65 @@ import org.scalatest.FlatSpec
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.Matchers
 
-import org.bridj.BridJ
-import org.bridj.Pointer
-import org.bridj.Pointer._
+import com.sun.jna.Memory
+import com.sun.jna.Native
+import com.sun.jna.ptr.PointerByReference
 
 import org.dianahep.scaroot._
 
 class DefaultSuite extends FlatSpec with Matchers {
   "stuff" must "work" in {
-    // turn off ROOT's signal handling to avoid conflicts with Java's
-    BridJ.getNativeLibrary("Core").getSymbolPointer("gSystem").as(classOf[TUnixSystem]).get.ResetSignals()
+    RootAccessLibrary.resetSignals()
 
-    val gInterpreter = TInterpreter.Instance.as(classOf[TCling])
-
-    gInterpreter.get.Declare(pointerToCString("""
+    RootAccessLibrary.declare("""
 class Something {
 public:
-  Something() {}
   int plus(int x, int y) { return x + y; }
 };
-"""))
+""")
 
-    val tclass = TClass.GetClass(pointerToCString("Something"), true, false);
+    val tclass = RootAccessLibrary.tclass("Something")
+    println(tclass)
 
-    val instance = tclass.get.New(TClass.ENewType.fromValue(1), false)
+    val instance = RootAccessLibrary.newInstance(tclass)
+    println(instance)
 
-    val tlist = tclass.get.GetListOfMethods(true)
+    val numMethods = RootAccessLibrary.numMethods(tclass)
+    println(numMethods)
 
-    val tlistiter = new TListIter(tlist, true)
+    val tmethods = 0 until numMethods map {methodIndex => RootAccessLibrary.tmethod(tclass, methodIndex)}
 
-    var tmethod = tlistiter.Next()
+    tmethods foreach {tmethod =>
+      print(RootAccessLibrary.tmethodName(tmethod))
+      print(" ")
+      print(RootAccessLibrary.tmethodNumArgs(tmethod))
+      print(" ")
 
-    while (tmethod != Pointer.NULL) {
-      println(tmethod.as(classOf[TFunction]))
-
-      // println(tmethod.as(classOf[TFunction]).get.GetDeclId())
-      tmethod = tlistiter.Next()
+      val args = 0 until RootAccessLibrary.tmethodNumArgs(tmethod) map {argIndex => RootAccessLibrary.tmethodArg(tmethod, argIndex)}
+      println(args.mkString(" "))
     }
 
+    val plus = RootAccessLibrary.tmethod(tclass, 0)
+    println(plus)
 
+    // val argv = new Memory(2 * Native.getNativeSize(java.lang.Integer.TYPE))
+    // argv.setInt(0 * Native.getNativeSize(java.lang.Integer.TYPE), 3)
+    // argv.setInt(1 * Native.getNativeSize(java.lang.Integer.TYPE), 8)
+    // println(argv)
+    // println(argv.getInt(0 * Native.getNativeSize(java.lang.Integer.TYPE)))
+    // println(argv.getInt(1 * Native.getNativeSize(java.lang.Integer.TYPE)))
+
+    // val ret = new Memory(1 * Native.getNativeSize(java.lang.Integer.TYPE))
+    // ret.setInt(0 * Native.getNativeSize(java.lang.Integer.TYPE), 9)
+    // println(ret)
+    // println(ret.getInt(0))
+
+    // RootAccessLibrary.execute(plus, instance, 2, new PointerByReference(argv), ret)
+    // println(ret)
+    // println(ret.getInt(0))
+
+    val result = RootAccessLibrary.execute(plus, instance, 3, 7)
+    println(result)
 
   }
 }

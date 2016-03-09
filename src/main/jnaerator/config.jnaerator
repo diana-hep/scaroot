@@ -1,0 +1,11 @@
+-library RootAccess
+
+-package org.dianahep.scaroot
+
+-direct
+
+-runtime JNA
+
+-I$(DIR)/../cpp/
+
+$(DIR)/../cpp/RootAccess.h

@@ -39,9 +39,9 @@
     <!-- </dependency> -->
 
     <dependency>
-      <groupId>com.nativelibs4java</groupId>
-      <artifactId>bridj</artifactId>
-      <version>0.7.0</version>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>4.2.1</version>
     </dependency>
 
     <!-- <dependency> -->
@@ -75,6 +75,24 @@
             <goals>
               <goal>generate</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.4.0</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <workingDirectory>src/main/cpp</workingDirectory>
+              <executable>make</executable>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -176,14 +194,14 @@
 
     </plugins>
 
-    <!-- <resources> -->
-    <!--   <resource> -->
-    <!--     <directory>target/native</directory> -->
-    <!--     <targetPath>.</targetPath> -->
-    <!--   </resource> -->
-    <!-- </resources> -->
+    <resources>
+      <resource>
+        <directory>target/native</directory>
+        <targetPath>.</targetPath>
+      </resource>
+    </resources>
 
-    <!-- <testResources> -->
-    <!-- </testResources> -->
+    <testResources>
+    </testResources>
   </build>
 </project>

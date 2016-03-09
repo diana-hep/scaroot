@@ -1,6 +1,7 @@
 #ifndef ROOT_ACCESS_H
 #define ROOT_ACCESS_H
 
+#include <RVersion.h>
 #include <TSystem.h>
 #include <TInterpreter.h>
 #include <TClass.h>
@@ -8,6 +9,10 @@
 #include <TMethodArg.h>
 
 extern "C" {
+  const char *rootVersion();
+  int rootVersionCode();
+  int rootVersionCodeFrom(int major, int minor, int revision);
+
   void resetSignals();
 
   bool declare(const char *code);

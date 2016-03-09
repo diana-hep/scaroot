@@ -2,6 +2,18 @@
 
 #include "RootAccess.h"
 
+const char *rootVersion() {
+  return ROOT_RELEASE;
+}
+
+int rootVersionCode() {
+  return ROOT_VERSION_CODE;
+}
+
+int rootVersionCodeFrom(int major, int minor, int revision) {
+  return ROOT_VERSION(major, minor, revision);
+}
+
 void resetSignals() {
   gSystem->ResetSignals();
 }

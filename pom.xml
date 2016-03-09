@@ -6,7 +6,7 @@
   <inceptionYear>2016</inceptionYear>
 
   <groupId>org.diana-hep</groupId>
-  <artifactId>scaroot-${scala.tools.version}</artifactId>
+  <artifactId>scaroot_${scala.tools.version}</artifactId>
   <version>TRUNK</version>
   <packaging>jar</packaging>
 

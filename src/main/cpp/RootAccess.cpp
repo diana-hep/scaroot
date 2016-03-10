@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "RootAccess.h"
 
 const char *rootVersion() {

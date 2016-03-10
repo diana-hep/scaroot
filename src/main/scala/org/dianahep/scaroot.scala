@@ -199,24 +199,31 @@ package scaroot {
     override def toString() = s"""Method("$name", $params, $ret)"""
   }
 
-  /////////////////////////////////////////////// RootClassFactory and RootClassInstance
+  /////////////////////////////////////////////// RootClass and RootInstance
 
-  trait RootClassInstance {
+  trait RootInstance {
     def rootMethods: List[Method]
     def rootInstance: Pointer
   }
 
-  trait RootClassFactory[INTERFACE] {
+  trait RootClass[INTERFACE] extends java.io.Serializable {
     def className: String
     def cpp: String
     def tclass: RootAccessLibrary.TClass
     def newInstance: INTERFACE
+    override def equals(x: Any): Boolean = x match {
+      case that: RootClass[_] if (this.className == that.className  &&  this.cpp == that.cpp) => true
+      case _ => false
+    }
+    override def hashCode(): Int = java.util.Objects.hash(className, cpp)
   }
 
-  object RootClassFactory {
-    def newClass[INTERFACE](cpp: String): RootClassFactory[INTERFACE] = macro newClassImpl[INTERFACE]
+  object RootClass {
+    var namespaceNumber = 0
 
-    def newClassImpl[INTERFACE : c.WeakTypeTag](c: Context)(cpp: c.Expr[String]): c.Expr[RootClassFactory[INTERFACE]] = {
+    def newClass[INTERFACE](cpp: String): RootClass[INTERFACE] = macro newClassImpl[INTERFACE]
+
+    def newClassImpl[INTERFACE : c.WeakTypeTag](c: Context)(cpp: c.Expr[String]): c.Expr[RootClass[INTERFACE]] = {
       import c.universe._
       val interface = weakTypeOf[INTERFACE]
 
@@ -266,7 +273,7 @@ package scaroot {
             else
               throw new IllegalArgumentException(s"""
 **********************************************************************************************************
-Methods that have been deferred to C++ in a RootClassFactory must have signatures that consist of only primitive types:
+Methods that have been deferred to C++ in a RootClass must have signatures that consist of only primitive types:
 
     Boolean, Byte, Short, Int, Long, Float, Double, String, or an opaque com.sun.jna.Pointer to C++ data.
 
@@ -314,7 +321,7 @@ Encountered type "${p.typeSignature}" in parameter "${p.name}" of method "${meth
           else
             throw new IllegalArgumentException(s"""
 **********************************************************************************************************
-Methods that have been deferred to C++ in a RootClassFactory must return only primitive types:
+Methods that have been deferred to C++ in a RootClass must return only primitive types:
 
     Boolean, Byte, Short, Int, Long, Float, Double, String, or an opaque com.sun.jna.Pointer to C++ data.
 
@@ -341,22 +348,26 @@ Encountered type "${method.returnType}" in method "${method.name}".
       val definitions = definitions_.result
       val rootMethods = rootMethods_.result
 
-      c.Expr[RootClassFactory[INTERFACE]](q"""
+      c.Expr[RootClass[INTERFACE]](q"""
         import com.sun.jna.Memory
         import com.sun.jna.Native
         import com.sun.jna.Pointer
         import org.dianahep.scaroot._
 
-        new RootClassFactory[$interface] {
+        new RootClass[$interface] {
           val className = $name
           val cpp = $cpp.trim + "\n"
 
-          RootAccessLibrary.resetSignals()
-          RootAccessLibrary.declare(cpp)
+          @scala.transient
+          lazy val tclass = {
+            RootAccessLibrary.resetSignals()
+            RootAccessLibrary.declare("namespace RootNamespace" + RootClass.namespaceNumber.toString + " {\n" + cpp + "}")
+            val out = RootAccessLibrary.tclass("RootNamespace" + RootClass.namespaceNumber.toString + "::" + className)
+            RootClass.namespaceNumber += 1
+            out
+          }
 
-          val tclass = RootAccessLibrary.tclass(className)
-
-          def newInstance: $interface = new $interface with RootClassInstance {
+          def newInstance: $interface = new $interface with RootInstance {
             val rootInstance = RootAccessLibrary.newInstance(tclass)
 
             ..$definitions

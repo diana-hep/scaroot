@@ -12,20 +12,14 @@ import com.sun.jna.Pointer
 import org.dianahep.scaroot._
 
 class DefaultSuite extends FlatSpec with Matchers {
-  // Test classes must have unique names because they share a
-  // namespace in C++ (TInterpreter fills only one C++ "ClassLoader").
-  // Therefore, we number the tests like lines in BASIC: starting at
-  // 100, increasing in increments of 10, so that new tests can be
-  // inserted without disrupting the order.  :)
-
   "ROOT in Scala" must "compute boolean expressions" in {
-    trait Test100 {
+    trait Test {
       def one: Boolean
       def two(x: Boolean): Boolean
       def three(x: Boolean, y: Boolean): Boolean
     }
-    val factory = RootClassFactory.newClass[Test100]("""
-class Test100 {
+    val factory = RootClass.newClass[Test]("""
+class Test {
 public:
   bool one() { return true; }
   bool two(bool x) { return !x; }
@@ -43,13 +37,13 @@ public:
   }
 
   it must "compute byte expressions" in {
-    trait Test110 {
+    trait Test {
       def one: Byte
       def two(x: Byte): Byte
       def three(x: Byte, y: Byte): Byte
     }
-    val factory = RootClassFactory.newClass[Test110]("""
-class Test110 {
+    val factory = RootClass.newClass[Test]("""
+class Test {
 public:
   char one() { return 10; }
   char two(char x) { return -x; }
@@ -65,13 +59,13 @@ public:
   }
 
   it must "compute short expressions" in {
-    trait Test120 {
+    trait Test {
       def one: Short
       def two(x: Short): Short
       def three(x: Short, y: Short): Short
     }
-    val factory = RootClassFactory.newClass[Test120]("""
-class Test120 {
+    val factory = RootClass.newClass[Test]("""
+class Test {
 public:
   short one() { return 10; }
   short two(short x) { return -x; }
@@ -87,13 +81,13 @@ public:
   }
 
   it must "compute int expressions" in {
-    trait Test130 {
+    trait Test {
       def one: Int
       def two(x: Int): Int
       def three(x: Int, y: Int): Int
     }
-    val factory = RootClassFactory.newClass[Test130]("""
-class Test130 {
+    val factory = RootClass.newClass[Test]("""
+class Test {
 public:
   int one() { return 10; }
   int two(int x) { return -x; }
@@ -109,13 +103,13 @@ public:
   }
 
   it must "compute long expressions" in {
-    trait Test140 {
+    trait Test {
       def one: Long
       def two(x: Long): Long
       def three(x: Long, y: Long): Long
     }
-    val factory = RootClassFactory.newClass[Test140]("""
-class Test140 {
+    val factory = RootClass.newClass[Test]("""
+class Test {
 public:
   long one() { return 10; }
   long two(long x) { return -x; }
@@ -131,13 +125,13 @@ public:
   }
 
   it must "compute float expressions" in {
-    trait Test150 {
+    trait Test {
       def one: Float
       def two(x: Float): Float
       def three(x: Float, y: Float): Float
     }
-    val factory = RootClassFactory.newClass[Test150]("""
-class Test150 {
+    val factory = RootClass.newClass[Test]("""
+class Test {
 public:
   float one() { return 3.14; }
   float two(float x) { return -x; }
@@ -151,13 +145,13 @@ public:
   }
 
   it must "compute double expressions" in {
-    trait Test160 {
+    trait Test {
       def one: Double
       def two(x: Double): Double
       def three(x: Double, y: Double): Double
     }
-    val factory = RootClassFactory.newClass[Test160]("""
-class Test160 {
+    val factory = RootClass.newClass[Test]("""
+class Test {
 public:
   double one() { return 3.14; }
   double two(double x) { return -x; }
@@ -171,13 +165,13 @@ public:
   }
 
   it must "compute string expressions" in {
-    trait Test170 {
+    trait Test {
       def one: String
       def two(x: String): String
       def three(x: String, y: String): String
     }
-    val factory = RootClassFactory.newClass[Test170]("""
-class Test170 {
+    val factory = RootClass.newClass[Test]("""
+class Test {
 public:
   const char *one() { return "hello"; }
   const char *two(const char *x) { return x; }
@@ -191,7 +185,7 @@ public:
   }
 
   it must "pass opaque pointers" in {
-    trait Test180 {
+    trait Test {
       def fill(x: Double): Int
       def binContent(bin: Int): Double
 
@@ -200,15 +194,15 @@ public:
       def three(x: Pointer, y: Pointer): Pointer
     }
 
-    val factory = RootClassFactory.newClass[Test180]("""
+    val factory = RootClass.newClass[Test]("""
 static int counter = 0;
 
-class Test180 {
+class Test {
 private:
   std::string name;
   TH1F *hist;
 public:
-  Test180() {
+  Test() {
     name = std::string("hist") + std::to_string(counter);
     counter++;
     hist = new TH1F(name.c_str(), "", 100, 0, 1);
@@ -242,20 +236,17 @@ public:
   }
 
   it must "permit functions that return nothing" in {
-    trait Test190 {
+    trait Test {
       def fill(x: Double)
       def binContent(bin: Int): Double
     }
-    val factory = RootClassFactory.newClass[Test190]("""
-class Test190 {
+    val factory = RootClass.newClass[Test]("""
+class Test {
 private:
-  std::string name;
   TH1F *hist;
 public:
-  Test190() {
-    name = std::string("hist") + std::to_string(counter);
-    counter++;
-    hist = new TH1F(name.c_str(), "", 100, 0, 1);
+  Test() {
+    hist = new TH1F("hist2", "", 100, 0, 1);
   }
   void   fill(double x) { hist->Fill(x); }
   double binContent(int bin) { return hist->GetBinContent(bin); }
@@ -264,5 +255,44 @@ public:
     val instance = factory.newInstance
     instance.fill(0.5)
     instance.binContent(51) should be (1.0 +- 1e-6)
+  }
+
+  "RootInstance objects" must "be inspectable" in {
+  }
+
+  "RootClass objects" must "be serializable" in {
+    trait Test {
+      def get: Int
+      def put(x: Int)
+    }
+
+    val originalClass = RootClass.newClass[Test]("""
+class Test {
+private:
+  int value;
+public:
+  Test() { value = 999; }
+  int get() { return value; }
+  void put(int x) { value = x; }
+};
+""")
+
+    val instance1 = originalClass.newInstance
+    instance1.get should be (999)
+    instance1.put(5)
+    instance1.get should be (5)
+
+    val baos = new java.io.ByteArrayOutputStream
+    val outputStream = new java.io.ObjectOutputStream(baos)
+    outputStream.writeObject(originalClass)
+
+    val bais = new java.io.ByteArrayInputStream(baos.toByteArray)
+    val inputStream = new java.io.ObjectInputStream(bais)
+    val clonedClass = inputStream.readObject.asInstanceOf[RootClass[Test]]
+
+    val instance2 = clonedClass.newInstance
+    instance2.get should be (999)
+    instance2.put(12)
+    instance2.get should be (12)
   }
 }

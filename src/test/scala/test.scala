@@ -258,6 +258,32 @@ public:
   }
 
   "RootInstance objects" must "be inspectable" in {
+    trait Test {
+      def get: Int
+      def put(x: Int)
+    }
+    val factory = RootClass[Test]("""
+class Test {
+private:
+  int value;
+public:
+  Test() { value = 999; }
+  int get() { return value; }
+  void put(int x) { value = x; }
+};
+""")
+    val instance = factory.newInstance
+    instance.asInstanceOf[RootInstance].rootMethods should be (List(Method("get", List(), IntRet()), Method("put", List(IntParam("x")), UnitRet())))
+
+    instance match {
+      case RootInstance(List(Method("get", List(), IntRet()), Method("put", List(IntParam("x")), UnitRet()))) => 1 should be (1)
+      case _ => 0 should be (1)
+    }
+
+    instance match {
+      case RootInstance(Method("get", Nil, IntRet()) :: Method("put", List(IntParam("x")), UnitRet()) :: Nil) => 1 should be (1)
+      case _ => 0 should be (1)
+    }
   }
 
   "RootClass objects" must "be serializable" in {

@@ -24,6 +24,7 @@ package scaroot {
       value
     }
     def hasCppType(x: String) = x == "bool"
+    override def toString() = s"""BooleanParam("$name")"""
   }
 
   case class ByteParam(name: String) extends Param {
@@ -33,6 +34,7 @@ package scaroot {
       value
     }
     def hasCppType(x: String) = x == "char"
+    override def toString() = s"""ByteParam("$name")"""
   }
 
   case class ShortParam(name: String) extends Param {
@@ -42,6 +44,7 @@ package scaroot {
       value
     }
     def hasCppType(x: String) = x == "short"
+    override def toString() = s"""ShortParam("$name")"""
   }
 
   case class IntParam(name: String) extends Param {
@@ -51,6 +54,7 @@ package scaroot {
       value
     }
     def hasCppType(x: String) = x == "int"
+    override def toString() = s"""IntParam("$name")"""
   }
 
   case class LongParam(name: String) extends Param {
@@ -60,6 +64,7 @@ package scaroot {
       value
     }
     def hasCppType(x: String) = x == "long"
+    override def toString() = s"""LongParam("$name")"""
   }
 
   case class FloatParam(name: String) extends Param {
@@ -69,6 +74,7 @@ package scaroot {
       value
     }
     def hasCppType(x: String) = x == "float"
+    override def toString() = s"""FloatParam("$name")"""
   }
 
   case class DoubleParam(name: String) extends Param {
@@ -78,6 +84,7 @@ package scaroot {
       value
     }
     def hasCppType(x: String) = x == "double"
+    override def toString() = s"""DoubleParam("$name")"""
   }
 
   case class StringParam(name: String) extends Param {
@@ -102,6 +109,7 @@ package scaroot {
       value    // return a pointer to the buffer, not the buffer pointer itself
     }
     def hasCppType(x: String) = x.replace("const", "").replace(" ", "") == "char*"
+    override def toString() = s"""StringParam("$name")"""
   }
 
   case class PointerParam(name: String) extends Param {
@@ -111,6 +119,7 @@ package scaroot {
       value
     }
     def hasCppType(x: String) = x.contains('*')
+    override def toString() = s"""PointerParam("$name")"""
   }
 
   /////////////////////////////////////////////// Ret
@@ -185,18 +194,37 @@ package scaroot {
 
   /////////////////////////////////////////////// Method
 
-  class Method(val name: String, val params: List[Param], val ret: Ret, tclass: RootAccessLibrary.TClass) {
+  class Method(val name: String, val params: List[Param], val ret: Ret, private val tclass: RootAccessLibrary.TClass = null) {
     val tmethod =
-      (0 until RootAccessLibrary.numMethods(tclass)).map(RootAccessLibrary.tmethod(tclass, _)).find({tm =>
-        RootAccessLibrary.tmethodName(tm) == name  &&
-        RootAccessLibrary.tmethodNumArgs(tm) == params.size  &&
-        (0 until RootAccessLibrary.tmethodNumArgs(tm)).map(RootAccessLibrary.tmethodArgType(tm, _)).zip(params).forall({case (rootTypeName, param) =>
-          param.hasCppType(rootTypeName)
-        })  &&
-        ret.hasCppType(RootAccessLibrary.tmethodRetType(tm))
-      }).get
+      if (tclass != null)
+        (0 until RootAccessLibrary.numMethods(tclass)).map(RootAccessLibrary.tmethod(tclass, _)).find({tm =>
+          RootAccessLibrary.tmethodName(tm) == name  &&
+          RootAccessLibrary.tmethodNumArgs(tm) == params.size  &&
+            (0 until RootAccessLibrary.tmethodNumArgs(tm)).map(RootAccessLibrary.tmethodArgType(tm, _)).zip(params).forall({case (rootTypeName, param) =>
+              param.hasCppType(rootTypeName)
+            })  &&
+          ret.hasCppType(RootAccessLibrary.tmethodRetType(tm))
+        }).getOrElse(null)
+      else
+        null
 
     override def toString() = s"""Method("$name", $params, $ret)"""
+
+    override def equals(x: Any): Boolean = x match {
+      case that: Method if (this.name == that.name  &&  this.params == that.params  &&  this.ret == that.ret) =>
+        if (this.tclass != null  &&  that.tclass != null)
+          this.tclass == that.tclass
+        else
+          true
+      case _ => false
+    }
+    override def hashCode(): Int = java.util.Objects.hash(name, params, ret)
+  }
+
+  object Method {
+    def unapply(x: Method) = Some((x.name, x.params, x.ret))
+    def apply(name: String, params: List[Param], ret: Ret, tclass: RootAccessLibrary.TClass = null) =
+      new Method(name, params, ret, tclass)
   }
 
   /////////////////////////////////////////////// RootClass and RootInstance
@@ -204,6 +232,10 @@ package scaroot {
   trait RootInstance {
     def rootMethods: List[Method]
     def rootInstance: Pointer
+  }
+
+  object RootInstance {
+    def unapply(x: RootInstance) = Some(x.rootMethods)
   }
 
   trait RootClass[INTERFACE] extends java.io.Serializable {
@@ -220,6 +252,10 @@ package scaroot {
 
   object RootClass {
     var namespaceNumber = 0
+
+    def unapply(x: RootClass[_]) = Some(x.cpp)
+
+    def apply[INTERFACE](cpp: String): RootClass[INTERFACE] = macro newClassImpl[INTERFACE]
 
     def newClass[INTERFACE](cpp: String): RootClass[INTERFACE] = macro newClassImpl[INTERFACE]
 

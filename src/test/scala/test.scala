@@ -8,9 +8,6 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.Matchers
 
 import com.sun.jna.Pointer
-import com.sun.jna.ptr.PointerByReference
-import com.sun.jna.Memory
-import com.sun.jna.Native
 
 import org.dianahep.scaroot._
 
@@ -193,6 +190,79 @@ public:
     instance.three("HEY", "THERE") should be ("HEY")
   }
 
+  it must "pass opaque pointers" in {
+    trait Test180 {
+      def fill(x: Double): Int
+      def binContent(bin: Int): Double
 
+      def one: Pointer
+      def two(x: Pointer): Pointer
+      def three(x: Pointer, y: Pointer): Pointer
+    }
 
+    val factory = RootClassFactory.newClass[Test180]("""
+static int counter = 0;
+
+class Test180 {
+private:
+  std::string name;
+  TH1F *hist;
+public:
+  Test180() {
+    name = std::string("hist") + std::to_string(counter);
+    counter++;
+    hist = new TH1F(name.c_str(), "", 100, 0, 1);
+  }
+  int    fill(double x) { return hist->Fill(x); }
+  double binContent(int bin) { return hist->GetBinContent(bin); }
+
+  TH1F *one() { return hist; }
+  TH1F *two(TH1F *x) { return x; }
+  TH1F *three(TH1F *x, TH1F *y) { x->Add(y); return x; }
+};
+""")
+
+    val instance1 = factory.newInstance
+    instance1.fill(0.5) should be (51)  // area 51
+    instance1.binContent(51) should be (1.0 +- 1e-6)
+
+    val instance2 = factory.newInstance
+    instance2.fill(0.5) should be (51)
+
+    val instance1_hist = instance1.one
+    val instance2_hist = instance2.one
+
+    instance1_hist should not be (instance2_hist)
+    instance1_hist should be (instance1.one)
+
+    instance1.two(instance1_hist) should be (instance1_hist)
+
+    instance1.three(instance1.one, instance2.one)
+    instance1.binContent(51) should be (2.0 +- 1e-6)
+  }
+
+  it must "permit functions that return nothing" in {
+    trait Test190 {
+      def fill(x: Double)
+      def binContent(bin: Int): Double
+    }
+    val factory = RootClassFactory.newClass[Test190]("""
+class Test190 {
+private:
+  std::string name;
+  TH1F *hist;
+public:
+  Test190() {
+    name = std::string("hist") + std::to_string(counter);
+    counter++;
+    hist = new TH1F(name.c_str(), "", 100, 0, 1);
+  }
+  void   fill(double x) { hist->Fill(x); }
+  double binContent(int bin) { return hist->GetBinContent(bin); }
+};
+""")
+    val instance = factory.newInstance
+    instance.fill(0.5)
+    instance.binContent(51) should be (1.0 +- 1e-6)
+  }
 }

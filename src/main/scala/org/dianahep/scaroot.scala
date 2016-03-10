@@ -104,12 +104,19 @@ package scaroot {
     def hasCppType(x: String) = x.replace("const", "").replace(" ", "") == "char*"
   }
 
-  // // TODO:
-  // case class PointerParam(name: String) extends Param
+  case class PointerParam(name: String) extends Param {
+    val value = new Memory(Native.getNativeSize(classOf[Pointer]))
+    def apply(x: Pointer): Pointer = {
+      value.setPointer(0, x)
+      value
+    }
+    def hasCppType(x: String) = x.contains('*')
+  }
 
   /////////////////////////////////////////////// Ret
 
   trait Ret {
+    def value: Pointer
     def hasCppType(x: String): Boolean
   }
 
@@ -164,8 +171,17 @@ package scaroot {
     def hasCppType(x: String) = x.replace("const", "").replace(" ", "") == "char*"
   }
 
-  // // TODO
-  // case class PointerRet() extends Ret
+  case class PointerRet() extends Ret {
+    val value = new Memory(Native.getNativeSize(classOf[Pointer]))
+    def apply() = value.getPointer(0)
+    def hasCppType(x: String) = x.contains('*')
+  }
+
+  case class UnitRet() extends Ret {
+    val value = Pointer.NULL
+    def apply() { }
+    def hasCppType(x: String) = x == "void"
+  }
 
   /////////////////////////////////////////////// Method
 
@@ -245,10 +261,17 @@ package scaroot {
               q"val $argHolderName = DoubleParam(${p.name.toString})"
             else if (p.typeSignature =:= typeOf[String])
               q"val $argHolderName = StringParam(${p.name.toString})"
-            // else if (p.typeSignature =:= typeOf[Pointer])
-            //   q"val $argHolderName = PointerParam(${p.name.toString})"
+            else if (p.typeSignature =:= typeOf[Pointer])
+              q"val $argHolderName = PointerParam(${p.name.toString})"
             else
-              throw new IllegalArgumentException("Methods that have been deferred to C++ in a RootClassFactory must have signatures that consist of only primitive types: Boolean, Byte, Short, Int, Long, Float, Double, String, or an opaque com.sun.jna.Pointer to C++ data.")
+              throw new IllegalArgumentException(s"""
+**********************************************************************************************************
+Methods that have been deferred to C++ in a RootClassFactory must have signatures that consist of only primitive types:
+
+    Boolean, Byte, Short, Int, Long, Float, Double, String, or an opaque com.sun.jna.Pointer to C++ data.
+
+Encountered type "${p.typeSignature}" in parameter "${p.name}" of method "${method.name}".
+**********************************************************************************************************""")
 
           val argHolderCall = q"$argHolderName($paramTermName)"
 
@@ -267,27 +290,36 @@ package scaroot {
 
         val retHolderName = stringToTermName("__" + method.name.toString + "_ret")
 
-        val (retHolderDef, retHolderCall) =
+        val retHolderDef =
           if (method.returnType =:= typeOf[Boolean])
-            (q"val $retHolderName = BooleanRet()", q"$retHolderName()")
+            q"val $retHolderName = BooleanRet()"
           else if (method.returnType =:= typeOf[Byte])
-            (q"val $retHolderName = ByteRet()", q"$retHolderName()")
+            q"val $retHolderName = ByteRet()"
           else if (method.returnType =:= typeOf[Short])
-            (q"val $retHolderName = ShortRet()", q"$retHolderName()")
+            q"val $retHolderName = ShortRet()"
           else if (method.returnType =:= typeOf[Int])
-            (q"val $retHolderName = IntRet()", q"$retHolderName()")
+            q"val $retHolderName = IntRet()"
           else if (method.returnType =:= typeOf[Long])
-            (q"val $retHolderName = LongRet()", q"$retHolderName()")
+            q"val $retHolderName = LongRet()"
           else if (method.returnType =:= typeOf[Float])
-            (q"val $retHolderName = FloatRet()", q"$retHolderName()")
+            q"val $retHolderName = FloatRet()"
           else if (method.returnType =:= typeOf[Double])
-            (q"val $retHolderName = DoubleRet()", q"$retHolderName()")
+            q"val $retHolderName = DoubleRet()"
           else if (method.returnType =:= typeOf[String])
-            (q"val $retHolderName = StringRet()", q"$retHolderName()")
-          // else if (method.returnType =:= typeOf[Pointer])
-          //   (q"val $retHolderName = PointerRet()", q"$retHolderName()")
+            q"val $retHolderName = StringRet()"
+          else if (method.returnType =:= typeOf[Pointer])
+            q"val $retHolderName = PointerRet()"
+          else if (method.returnType =:= typeOf[Unit])
+            q"val $retHolderName = UnitRet()"
           else
-            throw new IllegalArgumentException("Methods that have been deferred to C++ in a RootClassFactory must return only primitive types: Boolean, Byte, Short, Int, Long, Float, Double, String, or an opaque com.sun.jna.Pointer to C++ data.")
+            throw new IllegalArgumentException(s"""
+**********************************************************************************************************
+Methods that have been deferred to C++ in a RootClassFactory must return only primitive types:
+
+    Boolean, Byte, Short, Int, Long, Float, Double, String, or an opaque com.sun.jna.Pointer to C++ data.
+
+Encountered type "${method.returnType}" in method "${method.name}".
+**********************************************************************************************************""")
 
         val methodHolderName = stringToTermName("__" + method.name.toString + "_method")
         val methodHolderDef = q"val $methodHolderName = new Method(${method.name.toString}, List(..$argHolderNames), $retHolderName, tclass)"

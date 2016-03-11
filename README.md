@@ -152,3 +152,7 @@ Note that the classifier is derived from the Scala version (hard-coded in `pom.x
    5. Test performance, including an apples-to-apples comparison with PyROOT.
    6. A library of common classes (e.g. `TH1D`) should be wrapped.
    7. Expand the build process to include more architectures, versions of ROOT, and versions of Scala.
+
+## More examples
+
+See the `src/test/scala` directory for unit tests.

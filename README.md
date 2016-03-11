@@ -7,7 +7,7 @@ ROOT is a popular framework for high energy physics data. Most "big data" framew
 
 ## Examples
 
-Access a statistical function:
+Link C++ classes that call ROOT to Scala traits (abstract interfaces) by constructing and instantiating a `RootClass`.
 
 ```scala
 import org.dianahep.scaroot.RootClass
@@ -31,10 +31,29 @@ println(chiSqInstance.calculate(53.8, 50))
 0.6689797343068249
 ```
 
+Or better yet, wrap it up as a Scala function. (In Scala, the `apply` method is the equivalent of C++'s `operator()`.)
+
+```scala
+trait ChiSqProbFcn extends scala.Function2[Double, Int, Double] {
+  def apply(chi2: Double, ndof: Int): Double
+}
+
+val chiSqProb = RootClass[ChiSqProb]("""
+class ChiSqProb {
+public:
+  double apply(double chi2, int ndof) {
+    return ROOT::Math::chisquared_cdf(chi2, ndof);
+  }
+};
+""").newInstance
+
+println(chiSqProb(53.8, 50))
+0.6689797343068249
+```
 
 
 
-
+---
 
 to write Scala code that calls ROOT through its ability to link C++ class definitions to Scala traits.
 

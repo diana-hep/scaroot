@@ -90,7 +90,7 @@ public:
 val hist1 = histogramClass.newInstance
 hist1.init("myhist", 10, 0, 1)
 
-0 until 10000 foreach {i => hist1.fill(scala.util.Random.nextDouble()) }
+0 until 10000 foreach {i => hist1.fill(scala.util.Random.nextDouble())}
 
 hist1.getall
 Array(950.0, 996.0, 960.0, 1001.0, 1010.0, 982.0, 1067.0, 956.0, 1049.0, 1029.0)
@@ -109,7 +109,7 @@ This _might_ be the fastest way possible to call runtime-generated C++ code from
 ## Capabilities
 
    * The C++ code is not fixed until it is used to create an object. You can even generate it in Scala (see [string interpolation](http://docs.scala-lang.org/overviews/core/string-interpolation.html)).
-   * `RootInstance` objects (created via `newInstance` above) can be inspected with Scala `match` patterns.
+   * `RootInstance` objects (created via `newInstance` above) can be inspected with Scala match patterns.
    * `RootClass` objects are serializable, so they can be submitted in a Spark job.
 
 ## Limitations
@@ -161,7 +161,7 @@ All of the Scala code is in `src/main/scala/org/dianahep/scaroot.scala`.
    * `RootInstance` instances represent C++ objects, already compiled, instantiated, and ready to use.
    * `Param` tracks method parameter names and types. It has a subclass for each primitive type.
    * `Ret` tracks method return types. It has a subclass for each primitive type.
-   * `Method` organizes `Param` and `Ret` descriptions in a way that can be used in Scala match expressions.
+   * `Method` organizes `Param` and `Ret` descriptions in a way that can be used in Scala match patterns.
 
 The C++ code and `Makefile` are in the `src/main/cpp` directory. Most of these functions are just pass-throughs to the related ROOT classes with C-style function names (note the `extern "C"`) for JNA. There's a hard-coded `execute` function for each number of parameters up to 22 (Scala's limit).
 

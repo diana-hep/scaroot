@@ -100,7 +100,7 @@ Array(950.0, 996.0, 960.0, 1001.0, 1010.0, 982.0, 1067.0, 956.0, 1049.0, 1029.0)
 
 `RootClass` is a parameterized type (equivalent of a C++ template); when you specify a concrete class, such as `RootClass[Histogram]`, it invokes a compile-time macro that creates a specialized class with all the external bindings built-in for speed. In Scala, "compile-time" may be when you press enter on the Scala prompt or the Spark prompt, or it may be when you build a deployable JAR.
 
-These bindings connect to ROOT through [Java Native Access](https://github.com/java-native-access/jna), which directly connects Java/Scala code and natively compiled libraries in the same process. Data are copied to and from ROOT without serialization or interprocess communication. (The data must be copied because (a) the Java garbage collector might otherwise move it and (b) it may need to be converted to little-endian.)
+These bindings connect to ROOT through [Java Native Access (JNA)](https://github.com/java-native-access/jna), which directly connects Java/Scala code and natively compiled libraries in the same process. Data are copied to and from ROOT without serialization or interprocess communication. (The data must be copied because (a) the Java garbage collector might otherwise move it and (b) it may need to be converted to little-endian.)
 
 C++ code is compiled and linked at runtime using ROOT's `TInterpreter` interface to CINT or Cling (LLVM). Method calls are made using cached `TMethod` pointers, not string or hashmap lookups.
 
@@ -152,6 +152,24 @@ Note that the classifier is derived from the Scala version (hard-coded in `pom.x
    5. Test performance, including an apples-to-apples comparison with PyROOT.
    6. A library of common classes (e.g. `TH1D`) should be wrapped.
    7. Expand the build process to include more architectures, versions of ROOT, and versions of Scala.
+
+## Code overview
+
+All of the Scala code is in `src/main/scala/org/dianahep/scaroot.scala`.
+
+   * `RootClass` instances represent C++ classes for ROOT to compile. In Scala, they are instances created through the `RootClass.newClass[INSTANCE]` macro (or just `RootClass[INSTANCE]`, which is an alias).
+   * `RootInstance` instances represent C++ objects, already compiled, instantiated, and ready to use.
+   * `Param` tracks method parameter names and types. It has a subclass for each primitive type.
+   * `Ret` tracks method return types. It has a subclass for each primitive type.
+   * `Method` organizes `Param` and `Ret` descriptions in a way that can be used in Scala match expressions.
+
+The C++ code and `Makefile` are in the `src/main/cpp` directory. Most of these functions are just pass-throughs to the related ROOT classes with C-style function names (note the `extern "C"`) for JNA. There's a hard-coded `execute` function for each number of parameters up to 22 (Scala's limit).
+
+The C++ component compiles to a dynamic library (`.so` file) that acts as an interface between the JVM and ROOT. This `.so` file is bundled inside the ScaROOT JAR to simplify deployment, but note that the resulting JAR is not platform-independent.
+
+Why not connect the JVM directly to ROOT with [BridJ](https://github.com/nativelibs4java/BridJ) instead of JNA? (Unlike JNA, BridJ is C++ aware and potentially wouldn't need an intermediate `.so`.) Because constructors and virtual functions are indexed in a dynamic library by number, and the only way to determine the correct number is to parse the header files. Directly binding to C++ functions with BridJ is essentially like linking by hand, and ultimately unsafe. For safety, BridJ would require intermediate linking code just like the JNA, and so I decided to go with the older, more widely used product.
+
+The [JNAerator plugin](https://github.com/nativelibs4java/JNAerator/tree/master/maven-jnaerator-plugin) creates Java source code from the C++ header file, which is compiled into the Scala project.
 
 ## More examples
 

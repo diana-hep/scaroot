@@ -100,11 +100,11 @@ Array(950.0, 996.0, 960.0, 1001.0, 1010.0, 982.0, 1067.0, 956.0, 1049.0, 1029.0)
 
 `RootClass` is a parameterized type (equivalent of a C++ template); when you specify a concrete class, such as `RootClass[Histogram]`, it invokes a compile-time macro that creates a specialized class with all the external bindings built-in for speed. In Scala, "compile-time" may be when you press enter on the Scala prompt or the Spark prompt, or it may be when you build a deployable JAR.
 
-These bindings connect to ROOT through [Java Native Access](https://github.com/java-native-access/jna), which directly connects Java/Scala code and natively compiled libraries in the same process. Data are copied to and from ROOT without serialization or interprocess communication. (The data must be copied because (a) the Java garbage collector might move it otherwise and (b) it may need to be converted to little-endian.)
+These bindings connect to ROOT through [Java Native Access](https://github.com/java-native-access/jna), which directly connects Java/Scala code and natively compiled libraries in the same process. Data are copied to and from ROOT without serialization or interprocess communication. (The data must be copied because (a) the Java garbage collector might otherwise move it and (b) it may need to be converted to little-endian.)
 
 C++ code is compiled and linked at runtime using ROOT's `TInterpreter` interface to CINT or Cling (LLVM). Method calls are made using cached `TMethod` pointers, not string or hashmap lookups.
 
-This might be the fastest way possible to call runtime-generated C++ code from the JVM.
+This _might_ be the fastest way possible to call runtime-generated C++ code from the JVM.
 
 ## Capabilities
 

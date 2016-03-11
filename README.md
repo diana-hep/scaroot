@@ -112,13 +112,16 @@ C++ code is compiled and linked at runtime using ROOT's `TInterpreter` interface
 
 ## Limitations
 
-   * `RootInstance` objects are not serializable. They must be generated from a `RootClass`.
+   * `RootInstance` objects are not serializable, since they might carry C++ data. They must be generated from a `RootClass`.
    * Scala traits cannot have constructors, so the C++ class must have a zero-argument constructor (implicitly or explicitly).
    * Class methods declared in Scala and defined in C++ can only have primitives for arguments and return values: `Boolean` (`bool` in C++), `Byte` (`char` in C++), `Short`, `Int`, `Long`, `Float`, `Double`, `String` (`char*` in C++), or an opaque `com.sun.jna.Pointer` to C++ data.
+   * The Java Virtual Machine has no equivalent for unsigned primitives.
 
 ## Roadmap
 
    1. ScaROOT needs to fail gracefully from errors. Currently it segmentation faults.
    2. Must catch C++ exceptions and propagate to Java exceptions.
-   3. Test in Spark.
-   4. A library of common classes (e.g. `TH1D`) should be wrapped.
+   3. Ensure that all possible variants of primitive types (e.g. `int`, `Int_t`, `Int32_t`, etc.) are correctly mapped to Scala types.
+   4. Test in Spark.
+   5. Test performance, including an apples-to-apples comparison with PyROOT.
+   6. A library of common classes (e.g. `TH1D`) should be wrapped.

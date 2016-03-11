@@ -7,7 +7,7 @@ ROOT is a popular framework for high energy physics data. Most "big data" framew
 
 This is for accessing ROOT library functions. See [root2avro](https://github.com/diana-hep/root2avro) for a high-throughput data feed.
 
-ScaROOT serves the same purpose as PyROOT, which provides access to ROOT functions in Python, though the interface differs because Python is more dynamic than the Java Virtual Machine.
+ScaROOT serves the same purpose as PyROOT, which provides access to ROOT functions in Python, though the interface differs because Python is more dynamic than the Java Virtual Machine (JVM).
 
 ## Examples
 
@@ -104,7 +104,7 @@ These bindings connect to ROOT through the [Java Native Access](https://github.c
 
 C++ code is compiled and linked at runtime using ROOT's `TInterpreter` interface to CINT or Cling (LLVM). Method calls are made using cached `TMethod` pointers, not string or hashmap lookups.
 
-This might be the fastest way possible to call runtime-generated C++ code from the Java Virtual Machine.
+This might be the fastest way possible to call runtime-generated C++ code from the JVM.
 
 ## Capabilities
 
@@ -117,7 +117,7 @@ This might be the fastest way possible to call runtime-generated C++ code from t
    * `RootInstance` objects are not serializable, since they might carry C++ data. They must be generated from a `RootClass`.
    * Scala traits cannot have constructors, so the C++ class must have a zero-argument constructor (implicitly or explicitly).
    * Class methods declared in Scala and defined in C++ can only have primitives for arguments and return values: `Boolean` (`bool` in C++), `Byte` (`char` in C++), `Short`, `Int`, `Long`, `Float`, `Double`, `String` (`char*` in C++), or an opaque `com.sun.jna.Pointer` to C++ data.
-   * The Java Virtual Machine has no equivalent for unsigned primitives.
+   * The JVM has no equivalent for unsigned primitives.
    * An installation of ROOT must be accessible on the library path (e.g. `LD_LIBRARY_PATH`) and that version must be compatible with the version compiled into ScaROOT.
    * Since this project makes used of Scala macros, it is bound to a Scala release (2.10 and not 2.11).
 

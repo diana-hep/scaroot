@@ -1,4 +1,4 @@
-# scaroot
+# ScaROOT
 Call ROOT or arbitrary C++ code from Scala
 
 ## Motivation
@@ -33,16 +33,69 @@ public:
 val chiSqProb = chiSqProbClass.newInstance
 
 // And use it:
-println(chiSqProb.apply(53.8, 50))
+chiSqProb.apply(53.8, 50)
 0.6689797343068249
 ```
 
 Or better yet, call the instance like a function. (In Scala, the `apply` method is the equivalent of C++'s `operator()`.)
 
 ```scala
-println(chiSqProb(53.8, 50))
+chiSqProb(53.8, 50)
 0.6689797343068249
 ```
+
+The class instance can maintain state and some functions can be defined in Scala.
+
+```scala
+trait Histogram {
+  var name: String = ""
+  var bins: Int = 0
+  var low: Double = 0
+  var high: Double = 0
+  def init(name: String, bins: Int, low: Double, high: Double) {
+    this.name = name
+    this.bins = bins
+    this.low = low
+    this.high = high
+    initroot(name, bins, low, high)
+  }
+  def initroot(name: String, bins: Int, low: Double, high: Double)
+  def fill(x: Double)
+  def get(bin: Int): Double
+  def getall: Array[Double] = 1 to bins map {i => get(i)} toArray
+}
+
+val histogramClass = RootClass[Histogram]("""
+class Histogram {
+private:
+  TH1D *hist;
+public:
+  void initroot(const char *name, int bins, double low, double high) {
+    hist = new TH1D(name, "", bins, low, high);
+  }
+  void fill(double x) {
+    if (hist != nullptr) hist->Fill(x);
+  }
+  double get(int bin) {
+    if (hist != nullptr)
+      return hist->GetBinContent(bin);
+    else
+      return 0.0;
+  }
+};
+""")
+
+val hist1 = histogramClass.newInstance
+hist1.init("myhist", 10, 0, 1)
+
+0 until 10000 foreach {i => hist1.fill(scala.util.Random.nextDouble()) }
+
+hist1.getall
+Array(950.0, 996.0, 960.0, 1001.0, 1010.0, 982.0, 1067.0, 956.0, 1049.0, 1029.0)
+```
+
+
+
 
 
 

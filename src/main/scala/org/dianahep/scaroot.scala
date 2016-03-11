@@ -229,13 +229,14 @@ package scaroot {
 
   /////////////////////////////////////////////// RootClass and RootInstance
 
-  trait RootInstance {
+  trait RootInstance[INTERFACE] {
+    def rootClass: RootClass[INTERFACE]
     def rootMethods: List[Method]
     def rootInstance: Pointer
   }
 
   object RootInstance {
-    def unapply(x: RootInstance) = Some(x.rootMethods)
+    def unapply(x: RootInstance[_]) = Some(x.rootMethods)
   }
 
   trait RootClass[INTERFACE] extends java.io.Serializable {
@@ -403,7 +404,10 @@ Encountered type "${method.returnType}" in method "${method.name}".
             out
           }
 
-          def newInstance: $interface = new $interface with RootInstance {
+          private val THIS = this
+
+          def newInstance: $interface = new $interface with RootInstance[$interface] {
+            val rootClass = THIS
             val rootInstance = RootAccessLibrary.newInstance(tclass)
 
             ..$definitions

@@ -273,7 +273,7 @@ public:
 };
 """)
     val instance = factory.newInstance
-    instance.asInstanceOf[RootInstance].rootMethods should be (List(Method("get", List(), IntRet()), Method("put", List(IntParam("x")), UnitRet())))
+    instance.asInstanceOf[RootInstance[Test]].rootMethods should be (List(Method("get", List(), IntRet()), Method("put", List(IntParam("x")), UnitRet())))
 
     instance match {
       case RootInstance(List(Method("get", List(), IntRet()), Method("put", List(IntParam("x")), UnitRet()))) => 1 should be (1)

@@ -117,7 +117,7 @@ This _might_ be the fastest way possible to call runtime-generated C++ code from
    * `RootInstance` objects are not serializable, since they might carry C++ data. They must be generated from a `RootClass`.
    * Scala traits cannot have constructors, so the C++ class must have a zero-argument constructor (implicitly or explicitly).
    * Class methods declared in Scala and defined in C++ can only have primitives for arguments and return values: `Boolean` (`bool` in C++), `Byte` (`char` in C++), `Short`, `Int`, `Long`, `Float`, `Double`, `String` (`char*` in C++), or an opaque `com.sun.jna.Pointer` to C++ data.
-   * The JVM has no equivalent for unsigned primitives.
+   * The JVM has no equivalent of unsigned primitives, so all arguments must be signed.
    * An installation of ROOT must be accessible on the library path (e.g. `LD_LIBRARY_PATH`) and that version must be compatible with the version compiled into ScaROOT.
    * Since this project makes used of Scala macros, it is bound to a Scala release (2.10 and not 2.11).
 

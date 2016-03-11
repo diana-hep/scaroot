@@ -5,7 +5,9 @@ Call ROOT or arbitrary C++ code from Scala
 
 ROOT is a popular framework for high energy physics data. Most "big data" frameworks, such as Hadoop and Spark, are implemented in Java or Scala. ScaROOT allows you to call ROOT functions from Scala so that ROOT can be used to perform calculations in a big data workflow.
 
-(This is for accessing ROOT library functions. See `root2avro` for a high-throughput data feed.)
+This is for accessing ROOT library functions. See [root2avro](https://github.com/diana-hep/root2avro) for a high-throughput data feed.
+
+ScaROOT serves the same purpose as PyROOT, which provides access to ROOT functions in Python, though the interface differs because Python is more dynamic than the Java Virtual Machine.
 
 ## Examples
 
@@ -48,10 +50,10 @@ The class instance can maintain state and some functions can be defined in Scala
 
 ```scala
 trait Histogram {
-  var name: String = ""
-  var bins: Int = 0
-  var low: Double = 0
-  var high: Double = 0
+  private var name: String = ""
+  private var bins: Int = 0
+  private var low: Double = 0
+  private var high: Double = 0
   def init(name: String, bins: Int, low: Double, high: Double) {
     this.name = name
     this.bins = bins
@@ -94,31 +96,29 @@ hist1.getall
 Array(950.0, 996.0, 960.0, 1001.0, 1010.0, 982.0, 1067.0, 956.0, 1049.0, 1029.0)
 ```
 
+## How it works
 
+`RootClass` is a parameterized type (equivalent of a C++ template); when you specify a concrete class, such as `RootClass[Histogram]`, it invokes a compile-time macro that creates a specialized class with all the external bindings built-in for speed. In Scala, "compile-time" may be when you press enter on the Scala prompt or the Spark prompt. If you ran the above commands on a prompt, you'd see that the class name is something like `$anon$1$$anon$2@7c28c1` (anonymous).
 
+These bindings connect to ROOT through the [Java Native Access](https://github.com/java-native-access/jna), which directly connects Java/Scala code and natively compiled libraries in the same process. Data are copied to and from ROOT without serialization or interprocess communication. (The data must be copied because (a) the Java garbage collector might move it otherwise and (b) it may need to be converted to little-endian.)
 
+C++ code is compiled and linked at runtime using ROOT's `TInterpreter` interface to CINT or Cling (LLVM).
 
+## Capabilities
 
----
-
-to write Scala code that calls ROOT through its ability to link C++ class definitions to Scala traits.
-
-Once defined, calls from Scala to ROOT code are direct: no secondary process is managed and no data are serialized; they are only copied from the JVM's garbage collected heap to the C++ memory space and back (with a big-endian/little-endian swap, if necessary).
-
-ScaROOT is similar to PyROOT, which provides access to ROOT from Python. However, ScaROOT requires an interface to be explicitly defined because class field access in the JVM is not as dynamic as it is in Python (and presumably should be faster, too).
-
-ScaROOT uses Scala macros to generate the instrumented JVM classes at compile-time and ROOT's interpreter (CINT or Cling) to define and connect C++ classes at run-time. For Scala, "compile-time" may be on the Scala or Spark prompt.
-
-## Example
-
-
-
-## Dependencies
-
-
+   * The C++ code is not fixed until it is used to create an object. You can even generate it in Scala (see [string interpolation](http://docs.scala-lang.org/overviews/core/string-interpolation.html)).
+   * `RootInstance` objects (created via `newInstance` above) can be inspected with Scala `match` patterns.
+   * `RootClass` objects are serializable, so they can be submitted in a Spark job.
 
 ## Limitations
 
-  * Scala traits cannot have constructors, and so the C++ function must have a zero-argument constructor (implicitly or explicitly).
-  * Class methods declared in Scala and defined in C++ can only have primitives for arguments and return values: `Boolean` (`bool` in C++), `Byte` (`char` in C++), `Short`, `Int`, `Long`, `Float`, `Double`, `String` (`char*` in C++), or an opaque `com.sun.jna.Pointer` to C++ data.
+   * `RootInstance` objects are not serializable. They must be generated from a `RootClass`.
+   * Scala traits cannot have constructors, so the C++ class must have a zero-argument constructor (implicitly or explicitly).
+   * Class methods declared in Scala and defined in C++ can only have primitives for arguments and return values: `Boolean` (`bool` in C++), `Byte` (`char` in C++), `Short`, `Int`, `Long`, `Float`, `Double`, `String` (`char*` in C++), or an opaque `com.sun.jna.Pointer` to C++ data.
 
+## Roadmap
+
+   1. ScaROOT needs to fail gracefully from errors. Currently it segmentation faults.
+   2. Must catch C++ exceptions and propagate to Java exceptions.
+   3. Test in Spark.
+   4. A library of common classes (e.g. `TH1D`) should be wrapped.

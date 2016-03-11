@@ -46,7 +46,7 @@ chiSqProb(53.8, 50)
 0.6689797343068249
 ```
 
-The class instance can maintain state and some functions can be defined in Scala.
+The class instance can maintain state and you can mix Scala definitions with C++ definitions.
 
 ```scala
 trait Histogram {

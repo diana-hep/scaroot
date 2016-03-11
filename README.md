@@ -1,5 +1,5 @@
 # ScaROOT
-Call ROOT or arbitrary C++ code from Scala
+Call ROOT or arbitrary C++ code from Scala.
 
 ## Motivation
 
@@ -118,6 +118,30 @@ This might be the fastest way possible to call runtime-generated C++ code from t
    * Scala traits cannot have constructors, so the C++ class must have a zero-argument constructor (implicitly or explicitly).
    * Class methods declared in Scala and defined in C++ can only have primitives for arguments and return values: `Boolean` (`bool` in C++), `Byte` (`char` in C++), `Short`, `Int`, `Long`, `Float`, `Double`, `String` (`char*` in C++), or an opaque `com.sun.jna.Pointer` to C++ data.
    * The Java Virtual Machine has no equivalent for unsigned primitives.
+   * An installation of [ROOT](http://root.cern.ch/) must be accessible on the library path (e.g. `LD_LIBRARY_PATH`) and that version must be compatible with the version compiled into ScaROOT.
+   * Since this project makes used of Scala macros, it is bound to a Scala release (2.10 and not 2.11).
+
+## How to install
+
+[Install ROOT](http://root.cern.ch/) if necessary. Clone this repository and compile it with Maven:
+
+```
+cd scaroot
+mvn install
+```
+
+In your project, include ScaROOT as a dependency. Its Maven coordinates are
+
+```xml
+<dependency>
+  <groupId>org.dianahep</groupId>
+  <artifactId>scaroot</artifactId>
+  <version>0.1</version>
+  <classifier>scala_2.10-root_6.06</classifier>
+</dependency>
+```
+
+Note that the classifier is derived from the Scala version (hard-coded in `pom.xml`) and the ROOT version on your system (determined by running `root-config --version`).
 
 ## Roadmap
 
@@ -127,3 +151,4 @@ This might be the fastest way possible to call runtime-generated C++ code from t
    4. Test in Spark.
    5. Test performance, including an apples-to-apples comparison with PyROOT.
    6. A library of common classes (e.g. `TH1D`) should be wrapped.
+   7. Expand the build process to include more architectures, versions of ROOT, and versions of Scala.
